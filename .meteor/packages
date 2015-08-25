@@ -10,3 +10,5 @@ insecure
 cfs:graphicsmagick
 cfs:gridfs
 cfs:filesystem
+accounts-ui
+accounts-password
