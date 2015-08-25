@@ -1,19 +1,45 @@
-if (Meteor.isClient) {
-  // counter starts at 0
-  Session.setDefault('counter', 0);
+Router.configure({
+  layoutTemplate: 'polyenvironments'
+});
 
-  Template.hello.helpers({
-    counter: function () {
-      return Session.get('counter');
+Comps = new Mongo.Collection('comps');
+
+if (Meteor.isClient) {
+
+  Router.route('/', function () {
+    this.render('allComps');
+    this.layout('polyenvironments');
+  },{
+    name: 'comp.all'
+  });
+
+  Template.allComps.helpers({
+    comp: function () {
+      // return function to return comp from db
     }
   });
 
-  Template.hello.events({
+  Template.allComps.events({
+    // events for nav and for play
     'click button': function () {
       // increment the counter when button is clicked
-      Session.set('counter', Session.get('counter') + 1);
+      // Session.set('counter', Session.get('counter') + 1);
     }
   });
+
+
+
+  Router.route('/comp/:_id', function () {
+    // use the template named ApplicationLayout for our layout
+    this.layout('polyenvironments');
+
+    this.render('comp');
+
+  },{
+    name: 'comp.show'
+  });
+
+
 }
 
 if (Meteor.isServer) {
