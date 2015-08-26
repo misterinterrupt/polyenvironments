@@ -13,3 +13,4 @@ cfs:filesystem
 accounts-ui
 accounts-password
 iron:router
+cfs:standard-packages

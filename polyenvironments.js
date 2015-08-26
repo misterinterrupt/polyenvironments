@@ -2,7 +2,13 @@ Router.configure({
   layoutTemplate: 'polyenvironments'
 });
 
+// comps should havean image reference and analysis info
 Comps = new Mongo.Collection('comps');
+
+var Images = new FS.Collection("images", {
+  stores: [new FS.Store.FileSystem("images", {path: "~/uploads"})]
+});
+
 
 if (Meteor.isClient) {
 
