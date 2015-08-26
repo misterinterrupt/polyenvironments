@@ -1,0 +1,26 @@
+<template name="allComps">
+  <div class="browseNav">
+    <p>Click to play or nav through the collection of compositions</p>
+    <button id="previous">Previous</button>
+    <button id="next">Next</button>
+  </div>
+  <div class="comp">
+    <div class="imageView">
+      {{#each images}}
+        <div>
+          <a href="{{this.url}}" target="_blank"><img src="{{this.url store='thumbs' uploading='/images/uploading.gif' storing='/images/storing.gif'}}" alt="" class="thumbnail" /></a>
+        </div>
+        <p>Original name: {{this.name}}</p>
+        <p>Original extension: {{this.extension}}</p>
+        <p>Original type: {{this.type}}</p>
+        <p>Original size: {{this.size}}</p>
+        <p>Originally uploaded on: {{this.uploadedAt}}</p>
+        <p>Thumbnail name: {{this.name store="thumbs"}}</p>
+        <p>Thumbnail extension: {{this.extension store="thumbs"}}</p>
+        <p>Thumbnail type: {{this.type store="thumbs"}}</p>
+        <p>Thumbnail size: {{this.size store="thumbs"}}</p>
+      {{/each}}
+    </div>
+    <button id="play">Play</button>
+  </div>
+</template>
