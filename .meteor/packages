@@ -7,9 +7,9 @@
 meteor-platform
 insecure
 cfs:graphicsmagick
-cfs:gridfs
 cfs:filesystem
 accounts-ui
 iron:router
 cfs:standard-packages
 accounts-password
+cfs:s3
