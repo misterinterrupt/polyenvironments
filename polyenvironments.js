@@ -1,11 +1,17 @@
-var createThumb = function(fileObj, readStream, writeStream) {
-  // Transform the image into a 10x10px thumbnail
-  gm(readStream, fileObj.name()).resize('640', '480').stream().pipe(writeStream);
-};
+
+if (Meteor.isServer) {
+  var createThumb = function(fileObj, readStream, writeStream) {
+    // Transform the image into a 10x10px thumbnail
+    gm(readStream, fileObj.name()).resize('640', '480').stream().pipe(writeStream);
+  };
+}
+
+FS.debug = true;
+FS.HTTP.setBaseUrl('/media');
 
 Images = new FS.Collection("images", {
   stores: [
-    new FS.Store.FileSystem("thumbs", { transformWrite: createThumb, path: "~/uploads/thumb" }),
+    new FS.Store.FileSystem("thumbs", { path: "~/uploads/thumb", transformWrite: createThumb }),
     new FS.Store.FileSystem("images", { path: "~/uploads/full" }),
   ],
   filter: {
@@ -92,10 +98,17 @@ if (Meteor.isClient) {
 
   });
 
+  Template.compCreate.rendered = function() {
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+
+  }
+
   Template.compCreate.events({
     'change #upload': function(event, template) {
       FS.Utility.eachFile(event, function(file) {
         Images.insert(file, function (err, fileObj) {
+
           if(err) { console.log(err); }
           //If !err, we have inserted new doc with ID fileObj._id, and
           //kicked off the data upload using HTTP
@@ -109,9 +122,6 @@ if (Meteor.isClient) {
     this.layout('polyenvironments');
 
     this.render('compCreate');
-
-
-
   }, {
     name: 'comp.create'
   });
