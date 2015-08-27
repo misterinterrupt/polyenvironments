@@ -11,8 +11,8 @@ FS.HTTP.setBaseUrl('/media');
 
 Images = new FS.Collection("images", {
   stores: [
-    new FS.Store.FileSystem("thumbs", { path: "~/uploads/thumb", transformWrite: createThumb }),
-    new FS.Store.FileSystem("images", { path: "~/uploads/full" }),
+    new FS.Store.GridFS("thumbs", { path: "~/uploads/thumb", transformWrite: createThumb }),
+    new FS.Store.GridFS("images", { path: "~/uploads/full" }),
   ],
   filter: {
     allow: {
