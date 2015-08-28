@@ -57,43 +57,18 @@ if (Meteor.isClient) {
   });
 
   Template.compCreate.rendered = function() {
-    var canvas = document.getElementById('canvas');
-    var context = canvas.getContext('2d');
-
-    var FastTracker = function() {
-      FastTracker.base(this, 'constructor');
-    };
-    tracking.inherits(FastTracker, tracking.Tracker);
-    tracking.Fast.THRESHOLD = 2;
-    FastTracker.prototype.threshold = tracking.Fast.THRESHOLD;
-    FastTracker.prototype.track = function(pixels, width, height) {
-      stats.begin();
-      var gray = tracking.Image.grayscale(pixels, width, height);
-      var corners = tracking.Fast.findCorners(gray, width, height);
-      stats.end();
-      this.emit('track', {
-        data: corners
-      });
-    };
-    var tracker = new FastTracker();
-    tracker.on('track', function(event) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      var corners = event.data;
-      for (var i = 0; i < corners.length; i += 2) {
-        context.fillStyle = '#f00';
-        context.fillRect(corners[i], corners[i + 1], 2, 2);
-      }
-    });
-    tracking.track('#video', tracker, { camera: true });
-    // GUI Controllers
-    var gui = new dat.GUI();
-    gui.add(tracker, 'threshold', 1, 100).onChange(function(value) {
-      tracking.Fast.THRESHOLD = value;
-    });
+    
+    // no longer doing it in realtime
+    // var canvas = document.getElementById('canvas');
+    // var context = canvas.getContext('2d');
+    // trackImage(context, function(){});
+    getCamera();
+    pluckComp1();
   }
 
   Template.compCreate.events({
     'change #upload': function(event, template) {
+
       FS.Utility.eachFile(event, function(file) {
         Images.insert(file, function (err, fileObj) {
 
@@ -102,6 +77,40 @@ if (Meteor.isClient) {
           //kicked off the data upload using HTTP
         });
       });
+    },
+    // 'load #imgtag': function(event, template) {
+
+    //   // var canvas = document.getElementById('canvas');
+    //   // var image =  document.getElementById('imgtag');
+    //   // findAndDrawFeatures(image, canvas);
+
+    // },
+    'click #save': function(event, template) {
+
+      // var canvas = document.getElementById('canvas');
+      // var context = canvas.getContext('2d');
+      // var v = document.getElementById('video');
+      // drawToImage(v,context,canvas); // when save button is clicked, draw video feed to canvas
+      var layer1 = document.getElementById('layer1');
+      var layer2 = document.getElementById('layer2');
+      var image =  document.getElementById('video');
+      findAndDrawFeatures(image, layer1, layer2);
+    },
+    'change #fileselect': function(event, template) {
+
+        var imgtag = document.getElementById('imgtag'); // get reference to img tag
+        var sel = document.getElementById('fileselect'); // get reference to file select input element
+        var f = sel.files[0]; // get selected file (camera capture)
+        
+        var fr = new FileReader();
+        fr.onload = function receivedData() {           
+            // readAsDataURL is finished - add URI to IMG tag src
+            imgtag.src = fr.result;
+        }; // add onload event
+
+        console.log(f);
+        fr.readAsDataURL(f); // get captured image as data URI
+
     }
   });
 

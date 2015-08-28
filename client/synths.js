@@ -30,18 +30,32 @@
 //   });
 // };
 
-(function() {
+pluckCompExample = function pluckCompExample() {
   // mmml scheduler
-  var mml = "l18 o4 [ a r ab a r r d r ba a r ad ]16";
-
+  var tempo = "t111";
+  var noteLength = "l16";
+  var mml = tempo + " " + noteLength + " [ a0e0g0 r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
   //var gen = T("OscGen", {wave:"pulse", env:{type:"adsr", r:150}, mul:0.25});
   var gen = T("PluckGen", {env:T("adsr", {r:100})});
-  T("reverb", {room:0.95, damp:0.1, mix:0.75}, gen).play();
+  T("reverb", {room:0.95, damp:0.7, mix:0.85}, gen).play();
   T("mml", {mml:mml}, gen).on("ended", function() {
-    gen.play();
-    this.start();
+    //gen.pause();
+    //this.start();
   }).start();
-})();
+};
+
+pluckComp1 = function pluckComp1(data) {
+  // mmml scheduler
+  var noteLength = "l16";
+  var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
+  //var gen = T("OscGen", {wave:"pulse", env:{type:"adsr", r:150}, mul:0.25});
+  var gen = T("PluckGen", {env:T("adsr", {r:100})});
+  T("reverb", {room:0.95, damp:0.7, mix:0.85}, gen).play();
+  T("mml", {mml:mml}, gen).on("ended", function() {
+    gen.pause();
+    this.stop();
+  }).start();
+};
 
 
 // (function() {
@@ -57,7 +71,7 @@
 //   }).start();
 // })();
 
-// function() {
+// (function() {
 //   // chordwork
 //   var pattern = new sc.Pshuf(sc.series(12), Infinity);
 //   var scale   = new sc.Scale.major();
@@ -82,8 +96,8 @@
 //   T("interval", {interval:msec * 64}, function() {
 //     var root = pattern.next();
 //     chords.choose().forEach(function(i) {
-//       gen.noteOn(scale.wrapAt(root + i) +60, 80); 
+//       gen.noteOn(scale.wrapAt(root + i) +60, 80);
 //     });
 //     pan.pos.value = Math.random() * 2 - 1;
 //   }).set({buddies:synth}).start();
-// }
+// })();
