@@ -51,21 +51,25 @@ findAndDrawFeatures = function(image, layer1, layer2) {
   var imageData = context1.getImageData(0, 0, layer1.width, layer1.height);
   var gray = tracking.Image.grayscale(imageData.data, layer1.width, layer1.height);
   var corners = [];
-  var corners[0] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  corners[0] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
   tracking.Fast.THRESHOLD = 1.6;
-  var corners[1] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  corners[1] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
   tracking.Fast.THRESHOLD = 2.0;
-  var corners[2] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  corners[2] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
   tracking.Fast.THRESHOLD = 2.2;
-  var corners[3] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  corners[3] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
   tracking.Fast.THRESHOLD = 2.4;
-  var corners[4] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  corners[4] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
   var data = processCorners(corners);
 
 }
 
 processCorners = function processCorners(data) {
   console.log(data);
+  for (var i = data.length - 1; i >= 0; i--) {
+    data[i]
+  };
+
   for (var i = 0; i < corners.length; i += 2) {
     context2.fillStyle = '#0f0';
     context2.fillRect(corners[i], corners[i + 1], 3, 3);
