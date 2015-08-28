@@ -20,7 +20,14 @@
     <button id="capture">capture</button>
     <!-- input class="button" id="upload" type="file" -->
     <!-- Used to capture frame from webcam video feed -->
-    <input type="button" value="Save" id="save" />
+    <input type="button" value="Play" id="save" />
+    {{> loginButtons}}
+
+    {{#if currentUser}}
+      <form class="new-task">
+        <input type="text" name="text" placeholder="Type to add new tasks" />
+      </form>
+    {{/if}}
     <br/>
     <!-- On iOS 6 we can use the file select input with the following attributes to capture an image from the camera -->
     <input class="button" id="fileselect" type="file" accept="image/*" capture="camera">

@@ -40,37 +40,39 @@ trackImage = function trackImage(context, cb) {
 
 }
 
-findAndDrawFeatures = function(image, layer1, layer2) {
+findAndDrawFeatures = function(layer1, layer2, image) {
 
   var context1 = layer1.getContext("2d");
   var context2 = layer2.getContext("2d");
-  context2.clearRect(0, 0, layer2.width, layer2.height);
 
-  context1.drawImage(image, 0, 0, layer1.width, layer1.height);
-  
+  context2.clearRect(0, 0, layer2.width, layer2.height);
+  if(image) {
+    context1.drawImage(image, 0, 0, layer1.width, layer1.height);
+  }
   var imageData = context1.getImageData(0, 0, layer1.width, layer1.height);
   var gray = tracking.Image.grayscale(imageData.data, layer1.width, layer1.height);
   var corners = [];
   // get sets of corners at different FAST thresholds
-  tracking.Fast.THRESHOLD = 5.0;
-  corners[0] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 3.0;
-  corners[1] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 2.3;
-  corners[2] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 1.6;
-  corners[3] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 1.0;
-  corners[4] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  tracking.Fast.THRESHOLD = 34.0;
+  corners.push(tracking.Fast.findCorners(gray, layer1.width, layer1.height));
+  tracking.Fast.THRESHOLD = 21.0;
+  corners.push(tracking.Fast.findCorners(gray, layer1.width, layer1.height));
+  tracking.Fast.THRESHOLD = 13.0;
+  corners.push(tracking.Fast.findCorners(gray, layer1.width, layer1.height));
+  tracking.Fast.THRESHOLD = 8.0;
+  corners.push(tracking.Fast.findCorners(gray, layer1.width, layer1.height));
+  // tracking.Fast.THRESHOLD = 5.0;
+  // corners.push(tracking.Fast.findCorners(gray, layer1.width, layer1.height));
   console.log(corners);
-  // de-dupe by octave
+  // de-dupe by "octave"
   var octaves = processCorners(corners);
   console.log(octaves);
 
-  // draw each octave
-  var colors = ["#f00", "#ff0", "#0f0", "#0ff", "#00f"];
+  // draw each "octave"
+  var colors = ["#EF2F00", "#9EF200", "#00F479", "#0058F7", "#C500F9"];
   for (var i = octaves.length-1; i >= 0; i--) {
     var octave = octaves[i];
+    console.log(octaves[i].length);
     for (var j = 0; j < octave.length; j++) {
       context2.fillStyle = colors[i];
       context2.fillRect(octave[j].x, octave[j].y, 3, 3);
@@ -98,6 +100,16 @@ processCorners = function processCorners(data) {
     }
   };
   return octaves;
+}
+
+drawDataURIOnCanvas = function drawDataURIOnCanvas(strDataURI, canvas, cb) {
+    "use strict";
+    var img = new window.Image();
+    img.addEventListener("load", function () {
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        cb();
+    });
+    img.setAttribute("src", strDataURI);
 }
 
 drawToImage = function drawToImage(v,context, canvas) {

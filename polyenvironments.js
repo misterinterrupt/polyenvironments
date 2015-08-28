@@ -120,22 +120,27 @@ if (Meteor.isClient) {
       var layer1 = document.getElementById('layer1');
       var layer2 = document.getElementById('layer2');
       var image =  document.getElementById('video');
-      findAndDrawFeatures(image, layer1, layer2);
+      findAndDrawFeatures(layer1, layer2, image);
     },
     'change #fileselect': function(event, template) {
 
-        var imgtag = document.getElementById('imgtag'); // get reference to img tag
-        var sel = document.getElementById('fileselect'); // get reference to file select input element
-        var f = sel.files[0]; // get selected file (camera capture)
-        
-        var fr = new FileReader();
-        fr.onload = function receivedData() {           
-            // readAsDataURL is finished - add URI to IMG tag src
-            imgtag.src = fr.result;
-        }; // add onload event
+      var layer1 = document.getElementById('layer1');
+      var layer2 = document.getElementById('layer2');
+      //var imgtag = document.getElementById('imgtag'); // get reference to img tag
+      var sel = document.getElementById('fileselect'); // get reference to file select input element
+      var f = sel.files[0]; // get selected file (camera capture)
+      
+      var fr = new FileReader();
+      fr.onload = function receivedData() {
+        drawDataURIOnCanvas(fr.result, layer1, function() {
+          findAndDrawFeatures(layer1, layer2);
+        });
+        // readAsDataURL is finished - add URI to IMG tag src
+        // imgtag.src = fr.result;
+      }; // add onload event
 
-        console.log(f);
-        fr.readAsDataURL(f); // get captured image as data URI
+      console.log(f);
+      fr.readAsDataURL(f); // get captured image as data URI
 
     }
   });
