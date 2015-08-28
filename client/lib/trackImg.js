@@ -44,38 +44,60 @@ findAndDrawFeatures = function(image, layer1, layer2) {
 
   var context1 = layer1.getContext("2d");
   var context2 = layer2.getContext("2d");
+  context2.clearRect(0, 0, layer2.width, layer2.height);
 
-  tracking.Fast.THRESHOLD = 2.2;
   context1.drawImage(image, 0, 0, layer1.width, layer1.height);
   
   var imageData = context1.getImageData(0, 0, layer1.width, layer1.height);
   var gray = tracking.Image.grayscale(imageData.data, layer1.width, layer1.height);
   var corners = [];
+  // get sets of corners at different FAST thresholds
+  tracking.Fast.THRESHOLD = 5.0;
   corners[0] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 1.6;
+  tracking.Fast.THRESHOLD = 3.0;
   corners[1] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 2.0;
+  tracking.Fast.THRESHOLD = 2.3;
   corners[2] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 2.2;
+  tracking.Fast.THRESHOLD = 1.6;
   corners[3] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  tracking.Fast.THRESHOLD = 2.4;
+  tracking.Fast.THRESHOLD = 1.0;
   corners[4] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
-  var data = processCorners(corners);
+  console.log(corners);
+  // de-dupe by octave
+  var octaves = processCorners(corners);
+  console.log(octaves);
 
-}
-
-processCorners = function processCorners(data) {
-  console.log(data);
-  for (var i = data.length - 1; i >= 0; i--) {
-    data[i]
+  // draw each octave
+  var colors = ["#f00", "#ff0", "#0f0", "#0ff", "#00f"];
+  for (var i = octaves.length-1; i >= 0; i--) {
+    var octave = octaves[i];
+    for (var j = 0; j < octave.length; j++) {
+      context2.fillStyle = colors[i];
+      context2.fillRect(octave[j].x, octave[j].y, 3, 3);
+    }
   };
 
-  for (var i = 0; i < corners.length; i += 2) {
-    context2.fillStyle = '#0f0';
-    context2.fillRect(corners[i], corners[i + 1], 3, 3);
-  }
-  var processed = {};
-  return processed;
+}
+// de-dupe in ascending order to get the unique x/y pairs from the features
+processCorners = function processCorners(data) {
+  var octaves =[]; // set of arrays of x/y pair objects, top level arrays are "octave" data
+  for (var i = 0; i < data.length; i++) {
+    octaves[i] = [];
+    for (var j = 0; j < data[i].length-1; j+=2) {
+      var pair = {
+        x:data[i][j],
+        y:data[i][j+1]
+      };
+      if(i>0) {
+        if(_.where(octaves[i-1], pair).length === 0) {
+          octaves[i].push(pair);
+        }
+      } else {
+        octaves[i].push(pair);
+      }
+    }
+  };
+  return octaves;
 }
 
 drawToImage = function drawToImage(v,context, canvas) {
