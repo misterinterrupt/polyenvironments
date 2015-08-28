@@ -1,8 +1,8 @@
 <template name="polyenvironments">
   <nav>
-    <!--a class="button" href="/">Home</a-->
-    <!--a class="button" href="/comp/create">Create</a-->
-    <!--a class="button" href="/comp">Browse</a-->
+    <a class="button" href="/">Home</a>
+    <a class="button" href="/comp/create">Create</a>
+    <a class="button" href="/comp">Browse</a>
   </nav>
   <header>
     <h2>Polyenvironments</h2>
@@ -12,6 +12,12 @@
   </div>
   
   <footer>
-    
+    {{> loginButtons}}
+
+    {{#if currentUser}}
+      <form class="new-task">
+        <input type="text" name="text" placeholder="Type to add new tasks" />
+      </form>
+    {{/if}}
   </footer>
 </template>

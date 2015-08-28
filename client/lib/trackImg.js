@@ -72,7 +72,7 @@ findAndDrawFeatures = function(layer1, layer2, image) {
   var colors = ["#EF2F00", "#9EF200", "#00F479", "#0058F7", "#C500F9"];
   for (var i = octaves.length-1; i >= 0; i--) {
     var octave = octaves[i];
-    console.log(octaves[i].length);
+    console.log("events in octave " + i + ": " +octaves[i].length);
     for (var j = 0; j < octave.length; j++) {
       context2.fillStyle = colors[i];
       context2.fillRect(octave[j].x, octave[j].y, 3, 3);
