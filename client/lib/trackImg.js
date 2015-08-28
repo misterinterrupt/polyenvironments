@@ -40,19 +40,38 @@ trackImage = function trackImage(context, cb) {
 
 }
 
-findAndDrawFeatures = function(image, canvas) {
-  var context = canvas.getContext("2d");
-  var width = canvas.width;
-  var height = canvas.height;
-  tracking.Fast.THRESHOLD = window.fastThreshold;
-  context.drawImage(image, 0, 0, width, height);
-  var imageData = context.getImageData(0, 0, width, height);
-  var gray = tracking.Image.grayscale(imageData.data, width, height);
-  var corners = tracking.Fast.findCorners(gray, width, height);
+findAndDrawFeatures = function(image, layer1, layer2) {
+
+  var context1 = layer1.getContext("2d");
+  var context2 = layer2.getContext("2d");
+
+  tracking.Fast.THRESHOLD = 2.2;
+  context1.drawImage(image, 0, 0, layer1.width, layer1.height);
+  
+  var imageData = context1.getImageData(0, 0, layer1.width, layer1.height);
+  var gray = tracking.Image.grayscale(imageData.data, layer1.width, layer1.height);
+  var corners = [];
+  var corners[0] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  tracking.Fast.THRESHOLD = 1.6;
+  var corners[1] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  tracking.Fast.THRESHOLD = 2.0;
+  var corners[2] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  tracking.Fast.THRESHOLD = 2.2;
+  var corners[3] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  tracking.Fast.THRESHOLD = 2.4;
+  var corners[4] = tracking.Fast.findCorners(gray, layer1.width, layer1.height);
+  var data = processCorners(corners);
+
+}
+
+processCorners = function processCorners(data) {
+  console.log(data);
   for (var i = 0; i < corners.length; i += 2) {
-    context.fillStyle = '#fff';
-    context.fillRect(corners[i], corners[i + 1], 3, 3);
+    context2.fillStyle = '#0f0';
+    context2.fillRect(corners[i], corners[i + 1], 3, 3);
   }
+  var processed = {};
+  return processed;
 }
 
 drawToImage = function drawToImage(v,context, canvas) {
@@ -76,6 +95,7 @@ getCamera = function() {
   function handleVideo(stream) {
     // if found attach feed to video element
     video.src = window.URL.createObjectURL(stream);
+    console.log(video.width);
   }
   function videoError(e) {
     // no webcam found - do something

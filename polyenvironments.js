@@ -58,10 +58,36 @@ if (Meteor.isClient) {
 
   Template.compCreate.rendered = function() {
     
-    // no longer doing it in realtime
-    // var canvas = document.getElementById('canvas');
+    var layer1 = document.getElementById('layer1');
+    var layer2 = document.getElementById('layer2');
     // var context = canvas.getContext('2d');
+    // no longer doing it in realtime
     // trackImage(context, function(){});
+
+    // set scaled dimensions based on the media
+    video.addEventListener('playing', function(ev){
+      streaming = false;
+      width = 320;
+      if (!streaming) {
+        height = video.videoHeight / (video.videoWidth/width);
+      
+        // Firefox currently has a bug where the height can't be read from
+        // the video, so we will make assumptions if this happens.
+      
+        if (isNaN(height)) {
+          height = width / (4/3);
+        }
+      
+        video.setAttribute('width', width);
+        video.setAttribute('height', height);
+        layer1.setAttribute('width', width);
+        layer1.setAttribute('height', height);
+        layer2.setAttribute('width', width);
+        layer2.setAttribute('height', height);
+        streaming = true;
+      }
+    }, false);
+
     getCamera();
     pluckComp1();
   }
