@@ -29,8 +29,6 @@ if (Meteor.isServer) {
     makeMusic: function(data) {
 
       var music = []; // there, we've made music
-
-      // the total number of features modulo length of scales decides which scale
       // for 1st octave features,
       //    x ascends and wraps the notes via spatialX
       //    y ascends and wraps note lengths via spatialY
@@ -47,6 +45,17 @@ if (Meteor.isServer) {
 
       var scales = [majorDegrees, minorDegrees, harmonicMinDegrees, melodicMinDegrees];
       var notes = ['c', 'c+', 'd', 'd+', 'e', 'f', 'f+', 'g', 'g+', 'a', 'a+', 'b'];
+      // the total number of features in 2nd octave modulo length of scales decides which scale
+      var scale = data[1].length % scales.length;
+      var key = data[2].length % notes.length;
+      // // add offset to note indexing to
+      // for (var n = 0; n < key; n++) {
+      //   var front = notes.shift();
+      //   notes.push(front);
+      // };
+
+      console.log('scale', scales[scale]);
+      // console.log('key', notes[key]);
 
       // the chords are indexes into the degrees
       var chords = [
@@ -56,10 +65,18 @@ if (Meteor.isServer) {
       ];
 
 
+      function map_range(value, low1, high1, low2, high2) {
+        return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+      }
+      function map_percent(value, min, max) {
+        return (value - min) / (max - min);
+      }
+
       for (var octIdx = 0; octIdx < data.length; octIdx++) {
         
-        var octave = _.uniq(data[octIdx]);
-        // var minX, minY, maxX, maxY = 0; 
+        //var octave = _.uniq(data[octIdx]);
+        var octave = data[octIdx];
+        // var minX, minY, maxX, maxY = 0;
         console.log('num features in octave ' + octIdx, octave.length);
         if(octave.length > 0) {
           minX = _.min(octave, function(pair) {
@@ -81,12 +98,8 @@ if (Meteor.isServer) {
           console.log('rangeX, rangeY', rangeX, rangeY);
           
 
-          // quantize x values to quantths of the range
-          var quant = (octave.length / (100 - (octIdx*10)));
-          var skip = 5;
-          if( quant > 1.0) {
-            skip = Math.floor(skip*quant);
-          }
+          // quantize x values 
+          var skip = 10;
           var quantizedOctave = _.filter(octave, function(num, i) {
             return i%skip==0?num:false;
           });
@@ -94,31 +107,39 @@ if (Meteor.isServer) {
           console.log('quantized length', quantizedOctave.length);
 
           // get spatial freq of x
-          //  - sort by x
-          //  - plot distance to last
+          //  - sort by y for x and sort by x for y
+          //  - plot distance as percent
           var sortedOctave = _.sortBy(quantizedOctave, function(pair) {
-            return pair[0];
+            return pair[1];
           });
-
-          var maxNote = 12*(octIdx+1);
+          console.log(sortedOctave);
+          var maxDistX = 100;
           var spatialX = _.map(sortedOctave, function(num, i, list) {
             var distance = 1;
             if(i===0) {
               distance = 0;
             } else {
-              distance = (num[0] - list[i-1][0]) % maxNote; // wrap for note vals
+              distance = Math.abs((num[0] - list[i-1][0]) % 9);
+              // map range from 0 to maxDist map_range(value, low1, high1, low2, high2)
+              // distance = map_range(distance, minX[0], maxX[0], 0, 10);
 
-              console.log((num[0] - list[i-1][0]) + ' % ' + maxNote );
             }
             return distance;
           });
-          var spatialY = _.map(sortedOctave, function(num, i, list) {
+          // sortedOctave = _.sortBy(quantizedOctave, function(pair) {
+          //   return pair[0];
+          // });
+          var maxNoteY = 60; // more octave space by increasing octave
+          var minNoteY = 36;
+          var spatialY = _.map(quantizedOctave, function(num, i, list) {
             var distance = 1;
             if(i===0) {
               distance = 0;
             } else {
-              distance = (num[1] - list[i-1][1]) % maxNote; // wrap for note vals
-              console.log((num[1] - list[i-1][1]) + ' % ' + maxNote );
+              distance = (num[1] - list[i-1][1]);
+              distance = map_range(distance, minY[1], maxY[1], minNoteY, maxNoteY);
+              // distance = (num[1] - list[i-1][1]) % maxNoteY; // wrap for note vals
+              //console.log((num[1] - list[i-1][1]) + ' % ' + maxNoteY );
             }
             return distance;
           });
@@ -130,38 +151,42 @@ if (Meteor.isServer) {
           // write some mml
           for (var i = 0; i < spatialX.length; i++) {
             // rest, rest, rest, chord, chord, note, note, note, note, tie,
-            var modifiers = ['r ', 'r ', 'r ', '0 ', '0 ', ' ', ' ', ' ', ' ', '& ', '& ', '0 '];
-
-            var interval = parseInt(spatialY[i] % 12);
+            // var modifiers = [' ', 'r ', ' ', '0 ', '0 ', '0 ', '0 ', ' ', ' ', '& ', ' ', ' '];
+            var noteLengths = ['r', '0', '&', '1', '1.', '2', '0', 'r', '0', 'r']; 
+            var noteBase = quantizedOctave[i][0];
+            //console.log('noteBase', noteBase);
+            var noteBase = spatialY[i];
+            var interval = parseInt(noteBase % 7);
             // intervals go down from 12 in the negative
             if(0 > interval) {
-              interval = 12 + interval;
+              interval = 7 + interval;
             };
 
-            console.log('interval', interval);
-            // var note = notes[scales[0][interval]];
-            var note = notes[scales[0][0]];
-            //console.log(note);
-            var mod = modifiers[spatialX[i]%12];
+            var note = notes[scales[scale][interval]];
+            // var note = notes[scales[0][0]];
+            //console.log('scale index: ' + scales[scale][interval] + ' interval: ' + interval);
+            // var mod = modifiers[spatialX[i]%noteLengths.length];
             // var mod = modifiers[0];
-
+            var mod = noteLengths[spatialX[i]];
+          //console.log('mod index', spatialX[i]%10 -1);
             // add octaves for notes not in the first musical octave of the Y ranges (bipolar)
             var octup= 0;
             var octdn= 0;
-            if (0 > parseInt(spatialY[i])) {
-              octdn = Math.abs(Math.floor(spatialY[i] / 12));
-              var nod = note + mod;
+            var note = '' + note + '' + (mod=='r'?'':mod);
+            if (0 > parseInt(noteBase)) {
+              octdn = Math.abs(Math.floor(noteBase / 7));
+              console.log('octdn', octdn);
               for (var j = 0; j < octdn; j++) {
-                note = '>' + nod + '<';
+                note = '>' + note + '<';
               };
-            } 
-            else {
-              var nod = note + mod; 
-              octup = Math.ceil(spatialY[i] / 12);
+            } else { 
+              octup = Math.ceil(noteBase / 7);
+              console.log('octup', octup);
               for (var k = 0; k < octup; k++) {
-                note = '<' + nod + '>';
+                note = '<' + note + '>';
               };
             }
+            note = note + '' + (mod=='r'?mod:'');
             
 
             mml = mml + ' ' + note;
@@ -170,10 +195,11 @@ if (Meteor.isServer) {
 
           var playable = {
                           mml: '[' + mml + ']',
-                          scale: "",
-                          noteSeq: "",
-                          tempo: "",
-                          noteValues: "",
+                          scale: scale,
+                          key: key,
+                          tempoMod: data[2].length % 25,
+                          noiseLevel: spatialX[spatialX.length-1],
+                          noiseFrquency: maxY[1]
                         }
           music.push(playable);
         }
@@ -295,6 +321,9 @@ if (Meteor.isClient) {
     },
     'click #play': function() {
       Meteor.call("makeMusic", currentData, playMusic);
+    },
+    'click #stop': function() {
+      stopMusic();
     },
     'change #fileselect': function(event, template) {
 

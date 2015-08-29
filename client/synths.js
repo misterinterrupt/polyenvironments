@@ -1,26 +1,18 @@
+var playingComp1;
+var playingComp2;
 
+stopMusic = function() {
+  timbre.reset();
+}
 
 playMusic = function(err, music) {
 
-  pluckComp1(music[0]);
-  // for (var i = 0; i < music.length; i++) {
-  // };
+  timbre.reset();
+
+  playingComp1 = pluckComp1(music[2]).start();
+  playingComp2 = pluckComp2(music[2]).start();
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // function() {
 //   timbre.rec(function(output) {
@@ -56,7 +48,7 @@ playMusic = function(err, music) {
 
 pluckCompExample = function pluckCompExample() {
   // mmml scheduler
-  var tempo = "t111";
+  var tempo = "t140";
   var noteLength = "l16";
   var mml = tempo + " " + noteLength + " [ a0e0g0 r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
   //var gen = T("OscGen", {wave:"pulse", env:{type:"adsr", r:150}, mul:0.25});
@@ -70,17 +62,34 @@ pluckCompExample = function pluckCompExample() {
 
 pluckComp1 = function pluckComp1(data) {
   // mmml scheduler
-  var noteLength = "l16";
+  var that = this;
+  var tempo = "t114 ";
+  var noteLength = "l16 ";
   //var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
-  var mml = data.mml;
-  console.log(data);
-  //var gen = T("OscGen", {wave:"pulse", env:{type:"adsr", r:150}, mul:0.25});
+  var mml = tempo + noteLength + data.mml + '2';
+  // var gen = T("OscGen", {wave:"pulse", env:{type:"adsr", r:150}, mul:0.25});
   var gen = T("PluckGen", {env:T("adsr", {r:100})});
   T("reverb", {room:0.95, damp:0.7, mix:0.85}, gen).play();
-  T("mml", {mml:mml}, gen).on("ended", function() {
+  return T("mml", {mml:mml}, gen).on("ended", function() {
     gen.pause();
-    this.stop();
-  }).start();
+    that.stop();
+  });
+};
+
+pluckComp2 = function pluckComp2(data) {
+  // mmml scheduler
+  var that = this;
+  var tempo = 114 + data.tempoMod;
+  var noteLength = "l16 ";
+  //var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
+  var mml = 't' + tempo + ' ' + noteLength + data.mml + '2';
+  var gen = T("OscGen", {wave:"tri", env:{type:"adsr", r:80}, mul:0.25});
+  //var gen = T("PluckGen", {env:T("adsr", {r:100})});
+  T("reverb", {room:0.95, damp:0.7, mix:0.65}, gen).play();
+  return T("mml", {mml:mml}, gen).on("ended", function() {
+    gen.pause();
+    that.stop();
+  });
 };
 
 
