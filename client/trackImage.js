@@ -23,7 +23,7 @@ var trackImage = function trackImage() {
     var corners = event.data;
     for (var i = 0; i < corners.length; i += 2) {
       context.fillStyle = '#f00';
-      context.fillRect(corners[i], corners[i + 1], 2, 2);
+      context.fillRect(corners[i], corners[i + 1], 5, 5);
     }
   });
   tracking.track('#video', tracker, { camera: true });

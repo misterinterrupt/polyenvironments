@@ -49,10 +49,10 @@ if (Meteor.isServer) {
       var scale = data[1].length % scales.length;
       var key = data[2].length % notes.length;
       // // add offset to note indexing to
-      // for (var n = 0; n < key; n++) {
-      //   var front = notes.shift();
-      //   notes.push(front);
-      // };
+      for (var n = 0; n < key; n++) {
+        var front = notes.shift();
+        notes.push(front);
+      };
 
       console.log('scale', scales[scale]);
       // console.log('key', notes[key]);
@@ -267,7 +267,7 @@ if (Meteor.isClient) {
     // set scaled dimensions based on the media
     video.addEventListener('playing', function(ev){
       streaming = false;
-      width = 320;
+      width = 640;
       if (!streaming) {
         height = video.videoHeight / (video.videoWidth/width);
       

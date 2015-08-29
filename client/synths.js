@@ -4,11 +4,12 @@ var playingComp3;
 var playingComp4;
 
 stopMusic = function() {
+  timbre.pause();
   timbre.reset();
 }
 
 playMusic = function(err, music) {
-
+  timbre.pause();
   timbre.reset();
 
   playingComp1 = pluckComp1(music[1]).start();
@@ -88,10 +89,10 @@ pluckComp2 = function pluckComp2(data) {
   var mml = 't' + tempo + ' ' + noteLength + data.mml + '3';
 
   var msec = timbre.timevalue("BPM" + tempo + " L16.");
-  var gen = T("OscGen", {wave:"sin", env:{type:"adsr", r:80}, add:10, mul:0.98});
+  var gen = T("OscGen", {wave:"+sin", env:{type:"adsr", r:80}, add:25});
   //var gen = T("PluckGen", {env:T("adsr", {r:100})});
   gen = T("delay" , {time:msec, fb:0.7, mix:0.7}, gen);
-  T("reverb", {room:0.95, damp:0.85, mix:0.45}, gen).play();
+  T("reverb", {room:0.75, damp:0.85, mix:0.45}, gen).play();
   return T("mml", {mml:mml}, gen).on("ended", function() {
     gen.pause();
     that.stop();
@@ -103,7 +104,7 @@ chordComp = function chordComp(data) {
   var that = this;
   var tempo = 114 + data.tempoMod;
   var noteLength = "l8 ";
-  var mml = 't' + tempo + ' ' + noteLength + data.mml + '3';
+  var mml = 't' + tempo + ' ' + noteLength + data.mml + '6';
 
   var msec = timbre.timevalue("BPM" + tempo + " L8.");
   var osc  = T("saw");
@@ -114,13 +115,13 @@ chordComp = function chordComp(data) {
   var synth = pan;
 
   var t = T("+sin", {freq:0.36, add:100, mul:25});
-  var tp = T("sin", {freq:0.01*data.tempoMod, mul:.04});
+  var tp = T("+sqr", {freq:0.01*data.tempoMod, mul:.04});
   var freq = T("sin", {freq:5, add:2400, mul:800}).kr();
 
   synth = T("+saw", {freq:(msec * 2)+"ms", add:0.3, mul:0.95}, synth);
-  synth = T("phaser", {freq:freq, Q:0.7, steps:2, mul:0.2}, synth);
+  // synth = T("phaser", {freq:freq, Q:0.7, steps:2, mul:0.2}, synth);
   synth = T("hpf" , {cutoff:1420*tp, Q:36}, synth);
-  synth = T("delay" , {time:t, fb:0.6, mix:0.5}, synth);
+  synth = T("delay" , {time:msec, fb:0.6, mix:0.5}, synth);
   synth = T("reverb", {room:0.95, damp:0.4, mix:0.85}, synth).play();
   pan.pos.value = tp * 2 - 1;
   return T("mml", {mml:mml}, gen).on("ended", function() {
@@ -136,7 +137,7 @@ chimesComp = function chimesComp(data) {
   var noteLength = "l16 ";
   //var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
   var mml = 't' + tempo + ' ' + noteLength + data.mml + '3';
-console.log(data.tempoMod);
+
   var msec = timbre.timevalue("BPM" + tempo + " L16.");
   var xline = T("param", {value:1}).expTo(1000, "9sec");
   var freq  = T("sin", {freq:xline, mul:200, add:800});
@@ -144,6 +145,7 @@ console.log(data.tempoMod);
   //var gen = T("PluckGen", {env:T("adsr", {r:100})});
   gen = T("delay" , {time:msec, fb:0.7, mix:0.7}, gen);
   T("reverb", {room:0.95, damp:0.3, mix:0.65}, gen).play();
+  
   return T("mml", {mml:mml}, gen).on("ended", function() {
     gen.pause();
     that.stop();

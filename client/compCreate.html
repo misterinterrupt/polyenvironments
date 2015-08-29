@@ -1,21 +1,4 @@
 <template name="compCreate">
-  <div class="comp" style="position: relative; height:275px;">
-
-    <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-    <video id="video" width="300" height="275" preload autoplay loop muted
-      style="position: absolute; left: 0; top: 0; z-index: 0;"></video>
-
-    <!-- Selected image will be draw to a canvas -->
-    <canvas id="layer2" width="300" height="275" 
-     style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
-    <canvas id="layer1" width="300" height="275" 
-      style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
-
-
-    <!-- Or alternatively added to an img tag 
-    <img id="imgtag" src="" width="500" height="375" alt="capture img" /-->
-
-  </div>
   <div class="createActions" style="position: relative; float:left">
     <button id="capture">capture</button>
     <!-- input class="button" id="upload" type="file" -->
@@ -25,5 +8,22 @@
     <br/>
     <!-- On iOS 6 we can use the file select input with the following attributes to capture an image from the camera -->
     <input class="button" id="fileselect" type="file" accept="image/*" capture="camera">
+  </div>
+  <div class="comp" style="">
+
+    <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
+    <video id="video" width="640" height="480" preload autoplay loop muted></video>
+
+    <!-- Selected image will be draw to a canvas -->
+    <canvas id="layer2" width="640" height="480" 
+     style="float: left;;"></canvas>
+
+    <canvas id="layer1" width="640" height="480" 
+      style="float: left;"></canvas>
+
+
+    <!-- Or alternatively added to an img tag 
+    <img id="imgtag" src="" width="500" height="375" alt="capture img" /-->
+
   </div>
 </template>
