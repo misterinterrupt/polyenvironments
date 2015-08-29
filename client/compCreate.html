@@ -12,14 +12,15 @@
   <div class="comp" style="">
 
     <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-    <video id="video" width="640" height="480" preload autoplay loop muted></video>
+    <video id="video" width="500" height="400" preload autoplay loop muted></video>
 
     <!-- Selected image will be draw to a canvas -->
-    <canvas id="layer2" width="640" height="480" 
+    <canvas id="layer1" width="500" height="400" 
+      style="float: left;"></canvas>
+      
+    <canvas id="layer2" width="500" height="400" 
      style="float: left;;"></canvas>
 
-    <canvas id="layer1" width="640" height="480" 
-      style="float: left;"></canvas>
 
 
     <!-- Or alternatively added to an img tag 

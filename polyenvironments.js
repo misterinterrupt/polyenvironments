@@ -143,8 +143,8 @@ if (Meteor.isServer) {
             }
             return distance;
           });
-          console.log('X spatial freq', spatialX);
-          console.log('Y spatial freq', spatialY);
+          // console.log('X spatial freq', spatialX);
+          // console.log('Y spatial freq', spatialY);
 
           var mml = "";
 
@@ -176,14 +176,14 @@ if (Meteor.isServer) {
             if (0 > parseInt(noteBase)) {
               octdn = map_percent(noteBase, minY[1], maxY[1]) * 100;
               // octdn = Math.abs(Math.floor(noteBase / 7));
-              console.log('octdn', octdn);
+              // console.log('octdn', octdn);
               for (var j = 0; j < octdn; j++) {
                 note = '>' + note + '<';
               };
             } else { 
               octup = map_percent(noteBase, minY[1], maxY[1]) * 100;
               // octup = Math.ceil(noteBase / 7);
-              console.log('octup', octup);
+              // console.log('octup', octup);
               for (var k = 0; k < octup; k++) {
                 note = '<' + note + '>';
               };
@@ -258,6 +258,7 @@ if (Meteor.isClient) {
 
   Template.compCreate.rendered = function() {
     
+    $('#layer1').hide();
     var layer1 = document.getElementById('layer1');
     var layer2 = document.getElementById('layer2');
     var context1 = layer1.getContext('2d').globalAlpha = 0.1;
@@ -267,7 +268,7 @@ if (Meteor.isClient) {
     // set scaled dimensions based on the media
     video.addEventListener('playing', function(ev){
       streaming = false;
-      width = 640;
+      width = 500;
       if (!streaming) {
         height = video.videoHeight / (video.videoWidth/width);
       
@@ -311,7 +312,8 @@ if (Meteor.isClient) {
 
     // },
     'click #capture': function(event, template) {
-
+      $('#layer1').show();
+      $('#video').hide();
       // var canvas = document.getElementById('canvas');
       // var context = canvas.getContext('2d');
       // var v = document.getElementById('video');
@@ -322,10 +324,14 @@ if (Meteor.isClient) {
       findAndDrawFeatures(layer1, layer2, image);
     },
     'click #play': function() {
+      $('#layer1').show();
+      $('#video').hide();
       Meteor.call("makeMusic", currentData, playMusic);
     },
     'click #stop': function() {
       stopMusic();
+      $('#video').show();
+      $('#layer1').hide();
     },
     'change #fileselect': function(event, template) {
 
@@ -346,7 +352,8 @@ if (Meteor.isClient) {
 
       console.log(f);
       fr.readAsDataURL(f); // get captured image as data URI
-
+      $('#layer1').show();
+      $('#video').hide();
     }
   });
 
