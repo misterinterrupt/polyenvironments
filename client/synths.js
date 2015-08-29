@@ -2,9 +2,9 @@
 
 playMusic = function(err, music) {
 
-  for (var i = 0; i < music.length; i++) {
-    //pluckComp1(music[i]);
-  };
+  pluckComp1(music[0]);
+  // for (var i = 0; i < music.length; i++) {
+  // };
 }
 
 
@@ -71,7 +71,9 @@ pluckCompExample = function pluckCompExample() {
 pluckComp1 = function pluckComp1(data) {
   // mmml scheduler
   var noteLength = "l16";
-  var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
+  //var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
+  var mml = data.mml;
+  console.log(data);
   //var gen = T("OscGen", {wave:"pulse", env:{type:"adsr", r:150}, mul:0.25});
   var gen = T("PluckGen", {env:T("adsr", {r:100})});
   T("reverb", {room:0.95, damp:0.7, mix:0.85}, gen).play();

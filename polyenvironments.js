@@ -27,12 +27,13 @@ if (Meteor.isServer) {
       });
     },
     makeMusic: function(data) {
+
+      var music = []; // there, we've made music
+
       // the total number of features modulo length of scales decides which scale
       // for 1st octave features,
       //    x ascends and wraps the notes via spatialX
       //    y ascends and wraps note lengths via spatialY
-
-
 
       // major: W-W-H-W-W-W-H
       // minor: W-H-W-W-H-W-W
@@ -80,11 +81,11 @@ if (Meteor.isServer) {
           console.log('rangeX, rangeY', rangeX, rangeY);
           
 
-          // quantize x values to 10ths of the range
-          var hundreths = (octave.length / 100);
-          var skip = 10;
-          if( hundreths > 1.0) {
-            skip = Math.floor(skip*hundreths);
+          // quantize x values to quantths of the range
+          var quant = (octave.length / (100 - (octIdx*10)));
+          var skip = 5;
+          if( quant > 1.0) {
+            skip = Math.floor(skip*quant);
           }
           var quantizedOctave = _.filter(octave, function(num, i) {
             return i%skip==0?num:false;
@@ -98,27 +99,89 @@ if (Meteor.isServer) {
           var sortedOctave = _.sortBy(quantizedOctave, function(pair) {
             return pair[0];
           });
+
+          var maxNote = 12*(octIdx+1);
           var spatialX = _.map(sortedOctave, function(num, i, list) {
             var distance = 1;
             if(i===0) {
               distance = 0;
             } else {
-              distance = (num[0] - list[i-1][0]) % (12*(octIdx+1)) ; // wrap for note vals
-              console.log((num[0] - list[i-1][0]) + ' % ' + (12*(octIdx+1)) );
+              distance = (num[0] - list[i-1][0]) % maxNote; // wrap for note vals
+
+              console.log((num[0] - list[i-1][0]) + ' % ' + maxNote );
             }
             return distance;
           });
-          console.log('spatial freq', spatialX);
+          var spatialY = _.map(sortedOctave, function(num, i, list) {
+            var distance = 1;
+            if(i===0) {
+              distance = 0;
+            } else {
+              distance = (num[1] - list[i-1][1]) % maxNote; // wrap for note vals
+              console.log((num[1] - list[i-1][1]) + ' % ' + maxNote );
+            }
+            return distance;
+          });
+          console.log('X spatial freq', spatialX);
+          console.log('Y spatial freq', spatialY);
+
+          var mml = "";
+
+          // write some mml
+          for (var i = 0; i < spatialX.length; i++) {
+            // rest, rest, rest, chord, chord, note, note, note, note, tie,
+            var modifiers = ['r ', 'r ', 'r ', '0 ', '0 ', ' ', ' ', ' ', ' ', '& ', '& ', '0 '];
+
+            var interval = parseInt(spatialY[i] % 12);
+            // intervals go down from 12 in the negative
+            if(0 > interval) {
+              interval = 12 + interval;
+            };
+
+            console.log('interval', interval);
+            // var note = notes[scales[0][interval]];
+            var note = notes[scales[0][0]];
+            //console.log(note);
+            var mod = modifiers[spatialX[i]%12];
+            // var mod = modifiers[0];
+
+            // add octaves for notes not in the first musical octave of the Y ranges (bipolar)
+            var octup= 0;
+            var octdn= 0;
+            if (0 > parseInt(spatialY[i])) {
+              octdn = Math.abs(Math.floor(spatialY[i] / 12));
+              var nod = note + mod;
+              for (var j = 0; j < octdn; j++) {
+                note = '>' + nod + '<';
+              };
+            } 
+            else {
+              var nod = note + mod; 
+              octup = Math.ceil(spatialY[i] / 12);
+              for (var k = 0; k < octup; k++) {
+                note = '<' + nod + '>';
+              };
+            }
+            
+
+            mml = mml + ' ' + note;
+          }
+          console.log("mml ", mml);
+
+          var playable = {
+                          mml: '[' + mml + ']',
+                          scale: "",
+                          noteSeq: "",
+                          tempo: "",
+                          noteValues: "",
+                        }
+          music.push(playable);
         }
 
-      }
-      var music = [];
+      } // end per octave
 
 
-
-
-
-      return data;
+      return music;
     }
   });
 }
@@ -169,9 +232,9 @@ if (Meteor.isClient) {
     
     var layer1 = document.getElementById('layer1');
     var layer2 = document.getElementById('layer2');
-    // var context = canvas.getContext('2d');
-    // no longer doing it in realtime
-    // trackImage(context, function(){});
+    var context1 = layer1.getContext('2d').globalAlpha = 0.1;
+    var context2 = layer2.getContext('2d').globalAlpha = 0.1;
+    
 
     // set scaled dimensions based on the media
     video.addEventListener('playing', function(ev){
