@@ -1,12 +1,18 @@
 <template name="polyenvironments">
   <div class="section hero">
     <div class="container">
-        <h2>Polyenvironments</h2>
-        <a class="button" href="/create">Create</a>
+      <div class="row">
+        <div class="one-half column">
+          <h4 class="hero-heading">Polyenvironments</h4>
+          <a class="button button-primary" href="/create">Create</a>
+        </div>
+        <div class="one-half column phones">
+          {{> yield "main"}}
+        </div>
+      </div>
     </div>
   </div>
   <div>
-    {{> yield "main"}}
   </div>
   
   <footer>
