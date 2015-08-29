@@ -66,39 +66,44 @@ findAndDrawFeatures = function(layer1, layer2, image) {
   console.log(corners);
   // de-dupe by "octave"
   var octaves = processCorners(corners);
-  console.log(octaves);
 
   // draw each "octave"
   var colors = ["#EF2F00", "#9EF200", "#00F479", "#0058F7", "#C500F9"];
   for (var i = octaves.length-1; i >= 0; i--) {
     var octave = octaves[i];
-    console.log("events in octave " + i + ": " +octaves[i].length);
+    console.log("events in octave " + i + ": " + octaves[i].length);
     for (var j = 0; j < octave.length; j++) {
       context2.fillStyle = colors[i];
-      context2.fillRect(octave[j].x, octave[j].y, 3, 3);
+      context2.fillRect(octave[j][0], octave[j][1], 3, 3);
     }
   };
+  currentData = octaves;
 
 }
 // de-dupe in ascending order to get the unique x/y pairs from the features
 processCorners = function processCorners(data) {
+  var quantize = 20; // must be an even number minimum 2
   var octaves =[]; // set of arrays of x/y pair objects, top level arrays are "octave" data
   for (var i = 0; i < data.length; i++) {
     octaves[i] = [];
-    for (var j = 0; j < data[i].length-1; j+=2) {
-      var pair = {
-        x:data[i][j],
-        y:data[i][j+1]
-      };
-      if(i>0) {
-        if(_.where(octaves[i-1], pair).length === 0) {
-          octaves[i].push(pair);
-        }
-      } else {
-        octaves[i].push(pair);
-      }
+    for (var j = 0; j < data[i].length-quantize; j+=quantize) {
+      var pair = [
+        data[i][j],
+        data[i][j+1]
+      ];
+      octaves[i].push(pair);
+      // if(i>0) {
+      //   if(_.where(octaves[i-1], pair).length === 0) {
+      //     octaves[i].push(pair);
+      //   }
+      // } else {
+      //   octaves[i].push(pair);
+      // }
     }
-  };
+    if(i>0) {
+      octaves[i] = _.difference(octaves[i], octaves[i-1]);
+    }
+  }
   return octaves;
 }
 

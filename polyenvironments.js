@@ -12,8 +12,115 @@ if (Meteor.isServer) {
       { owner: this.userId }, 
       { sort: {uploadedAt: -1}});
   });
+  
+  Meteor.methods({
+    addComp: function(imageId) {
+      // Make sure the user is logged in before inserting a task
+      if (! Meteor.userId()) {
+        throw new Meteor.Error("not-authorized");
+      }
+      Comps.insert({
+        image: imageId,
+        createdAt: new Date(),
+        owner: Meteor.userId(),
+        username: Meteor.user().username
+      });
+    },
+    makeMusic: function(data) {
+      // the total number of features modulo length of scales decides which scale
+      // for 1st octave features,
+      //    x ascends and wraps the notes via spatialX
+      //    y ascends and wraps note lengths via spatialY
 
 
+
+      // major: W-W-H-W-W-W-H
+      // minor: W-H-W-W-H-W-W
+      // harmonicMinor 7^
+      // melodicMinor 6^ 7^
+
+      var majorDegrees = [0,2,4,5,7,9,11];
+      var minorDegrees = [0,2,3,5,7,8,10];
+      var harmonicMinDegrees = [0,2,3,5,7,9,10];
+      var melodicMinDegrees = [0,2,3,5,8,9,10];
+
+      var scales = [majorDegrees, minorDegrees, harmonicMinDegrees, melodicMinDegrees];
+      var notes = ['c', 'c+', 'd', 'd+', 'e', 'f', 'f+', 'g', 'g+', 'a', 'a+', 'b'];
+
+      // the chords are indexes into the degrees
+      var chords = [
+        [0, 1, 4], [0, 1, 5], [0, 1, 6],
+        [0, 2, 6], [0, 2, 5], [0, 2, 4],
+        [0, 3, 6], [0, 3, 5], [0, 3, 4]
+      ];
+
+
+      for (var octIdx = 0; octIdx < data.length; octIdx++) {
+        
+        var octave = _.uniq(data[octIdx]);
+        // var minX, minY, maxX, maxY = 0; 
+        console.log('num features in octave ' + octIdx, octave.length);
+        if(octave.length > 0) {
+          minX = _.min(octave, function(pair) {
+            return pair[0];
+          });
+          minY = _.min(octave, function(pair) {
+            return pair[1];
+          });
+          maxX = _.max(octave, function(pair) {
+            return pair[0];
+          });
+          maxY = _.max(octave, function(pair) {
+            return pair[1];
+          });
+
+          console.log('minX, minY, maxX, maxY', minX[0], maxX[0], minY[1], maxY[1]);
+          var rangeX = maxX[0] - minX[0];
+          var rangeY = maxY[1] - minY[1];
+          console.log('rangeX, rangeY', rangeX, rangeY);
+          
+
+          // quantize x values to 10ths of the range
+          var hundreths = (octave.length / 100);
+          var skip = 10;
+          if( hundreths > 1.0) {
+            skip = Math.floor(skip*hundreths);
+          }
+          var quantizedOctave = _.filter(octave, function(num, i) {
+            return i%skip==0?num:false;
+          });
+          console.log('skip', skip);
+          console.log('quantized length', quantizedOctave.length);
+
+          // get spatial freq of x
+          //  - sort by x
+          //  - plot distance to last
+          var sortedOctave = _.sortBy(quantizedOctave, function(pair) {
+            return pair[0];
+          });
+          var spatialX = _.map(sortedOctave, function(num, i, list) {
+            var distance = 1;
+            if(i===0) {
+              distance = 0;
+            } else {
+              distance = (num[0] - list[i-1][0]) % (12*(octIdx+1)) ; // wrap for note vals
+              console.log((num[0] - list[i-1][0]) + ' % ' + (12*(octIdx+1)) );
+            }
+            return distance;
+          });
+          console.log('spatial freq', spatialX);
+        }
+
+      }
+      var music = [];
+
+
+
+
+
+      return data;
+    }
+  });
 }
 
 
@@ -23,6 +130,8 @@ Router.configure({
 
 
 if (Meteor.isClient) {
+
+  currentData = {};
 
   Meteor.subscribe('all-comps');
   Meteor.subscribe('all-images');
@@ -89,7 +198,6 @@ if (Meteor.isClient) {
     }, false);
 
     getCamera();
-    pluckComp1();
   }
 
   Template.compCreate.events({
@@ -111,7 +219,7 @@ if (Meteor.isClient) {
     //   // findAndDrawFeatures(image, canvas);
 
     // },
-    'click #save': function(event, template) {
+    'click #capture': function(event, template) {
 
       // var canvas = document.getElementById('canvas');
       // var context = canvas.getContext('2d');
@@ -121,6 +229,9 @@ if (Meteor.isClient) {
       var layer2 = document.getElementById('layer2');
       var image =  document.getElementById('video');
       findAndDrawFeatures(layer1, layer2, image);
+    },
+    'click #play': function() {
+      Meteor.call("makeMusic", currentData, playMusic);
     },
     'change #fileselect': function(event, template) {
 
@@ -175,18 +286,3 @@ if (Meteor.isClient) {
   });
 }
 
-
-Meteor.methods({
-  addComp: function(imageId) {
-    // Make sure the user is logged in before inserting a task
-    if (! Meteor.userId()) {
-      throw new Meteor.Error("not-authorized");
-    }
-    Comps.insert({
-      image: imageId,
-      createdAt: new Date(),
-      owner: Meteor.userId(),
-      username: Meteor.user().username
-    });
-  }
-})

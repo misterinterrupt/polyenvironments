@@ -1,3 +1,27 @@
+
+
+playMusic = function(err, music) {
+
+  for (var i = 0; i < music.length; i++) {
+    //pluckComp1(music[i]);
+  };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // function() {
 //   timbre.rec(function(output) {
 //     var midis = [69, 71, 72, 76, 69, 71, 72, 76].scramble();
