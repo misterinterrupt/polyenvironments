@@ -227,22 +227,22 @@ if (Meteor.isClient) {
   Meteor.subscribe('all-comps');
   Meteor.subscribe('all-images');
 
-  Router.route('/', function () {
-    this.layout('polyenvironments');
-    this.render('allComps');
-  },{
-    name: 'comp.all'
-  });
+  // Router.route('/', function () {
+  //   this.layout('polyenvironments');
+  //   this.render('allComps');
+  // },{
+  //   name: 'comp.all'
+  // });
 
-  Template.allComps.helpers({
-    comps: function () {
-      return Comps.find({sort: {uploadedAt: -1}});
-    },
-    images: function () {
-      var imgs = Images.find();
-      return imgs // Where Images is an FS.Collection instance
-    }
-  });
+  // Template.allComps.helpers({
+  //   comps: function () {
+  //     return Comps.find({sort: {uploadedAt: -1}});
+  //   },
+  //   images: function () {
+  //     var imgs = Images.find();
+  //     return imgs // Where Images is an FS.Collection instance
+  //   }
+  // });
 
   Template.allComps.events({
     // events for nav and for play
@@ -350,7 +350,7 @@ if (Meteor.isClient) {
     }
   });
 
-  Router.route('/create', function () {
+  Router.route('/', function () {
 
     this.layout('polyenvironments');
 
