@@ -67,12 +67,12 @@ playMusic = function(err, music) {
 pluckComp1 = function pluckComp1(data) {
   // mmml scheduler
   var that = this;
-  var tempo = "t114 ";
+  var tempo = 114  + data.tempoMod * 2;
   var noteLength = "l16 ";
   //var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
-  var mml = tempo + noteLength + data.mml + '3';
+  var mml = 't' + tempo + ' '+ noteLength + data.mml + '4';
   // var gen = T("OscGen", {wave:"pulse", env:{type:"adsr", r:150}, mul:0.25});
-  var gen = T("PluckGen", {env:T("adsr", {r:100})});
+  var gen = T("PluckGen", {env:T("adsr", {r:100}), mul:0.9});
   T("reverb", {room:0.99, damp:0.35, mix:0.75}, gen).play();
   return T("mml", {mml:mml}, gen).on("ended", function() {
     gen.pause();
@@ -83,16 +83,16 @@ pluckComp1 = function pluckComp1(data) {
 pluckComp2 = function pluckComp2(data) {
   // mmml scheduler
   var that = this;
-  var tempo = 114 + data.tempoMod*2;
-  var noteLength = "l16 ";
+  var tempo = 114 + data.tempoMod;
+  var noteLength = "l64 ";
   //var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
-  var mml = 't' + tempo + ' ' + noteLength + data.mml + '3';
+  var mml = 't' + tempo + ' ' + noteLength + data.mml + '4';
 
-  var msec = timbre.timevalue("BPM" + tempo + " L16.");
-  var gen = T("OscGen", {wave:"+sin", env:{type:"adsr", r:80}, add:25});
+  var msec = timbre.timevalue("BPM" + tempo + " L4.");
+  var gen = T("OscGen", {wave:"saw", env:{type:"adsr", r:80}});
   //var gen = T("PluckGen", {env:T("adsr", {r:100})});
-  gen = T("delay" , {time:msec, fb:0.7, mix:0.7}, gen);
-  T("reverb", {room:0.75, damp:0.85, mix:0.45}, gen).play();
+  T("bandpass" , {cutoff:2020, Q:50}, gen);
+  T("delay" , {time:msec, fb:0.35, mix:0.5}, gen).play();
   return T("mml", {mml:mml}, gen).on("ended", function() {
     gen.pause();
     that.stop();
@@ -115,10 +115,10 @@ chordComp = function chordComp(data) {
   var synth = pan;
 
   var t = T("+sin", {freq:0.36, add:100, mul:25});
-  var tp = T("+sqr", {freq:0.01*data.tempoMod, mul:.04});
+  var tp = T("pulse", {freq:0.01*data.tempoMod, mul:.04});
   var freq = T("sin", {freq:5, add:2400, mul:800}).kr();
 
-  synth = T("+saw", {freq:(msec * 2)+"ms", add:0.3, mul:0.95}, synth);
+  synth = T("+saw", {freq:(msec * 2)+"ms", add:0.7, mul:0.95}, synth);
   // synth = T("phaser", {freq:freq, Q:0.7, steps:2, mul:0.2}, synth);
   synth = T("hpf" , {cutoff:1420*tp, Q:36}, synth);
   synth = T("delay" , {time:msec, fb:0.6, mix:0.5}, synth);
@@ -133,19 +133,19 @@ chordComp = function chordComp(data) {
 chimesComp = function chimesComp(data) {
   // mmml scheduler
   var that = this;
-  var tempo = 114 + data.tempoMod;
+  var tempo = 114 + data.tempoMod * 2;
   var noteLength = "l16 ";
   //var mml = noteLength + " [ a2. e2. g2. r c&b a rrr d r b&a a r g0e2b0 r g0a0b2 rrr ]16";
-  var mml = 't' + tempo + ' ' + noteLength + data.mml + '3';
+  var mml = 't' + tempo + ' ' + noteLength + data.mml + '2';
 
   var msec = timbre.timevalue("BPM" + tempo + " L16.");
   var xline = T("param", {value:1}).expTo(1000, "9sec");
   var freq  = T("sin", {freq:xline, mul:200, add:800});
-  var gen = T("OscGen", {wave:"sin", freq:freq, env:{type:"adsr", r:80}, mul:0.98});
+  var gen = T("OscGen", {wave:"tri", freq:freq, env:{type:"adsr", r:80}, mul:0.7});
   //var gen = T("PluckGen", {env:T("adsr", {r:100})});
-  gen = T("delay" , {time:msec, fb:0.7, mix:0.7}, gen);
-  T("reverb", {room:0.95, damp:0.3, mix:0.65}, gen).play();
-  
+  // gen = T("delay" , {time:msec, fb:0.4, mix:0.4}, gen);
+  T("reverb", {room:0.95, damp:0.3, mix:0.55}, gen).play();
+
   return T("mml", {mml:mml}, gen).on("ended", function() {
     gen.pause();
     that.stop();
