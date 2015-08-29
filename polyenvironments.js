@@ -126,19 +126,19 @@ if (Meteor.isServer) {
             }
             return distance;
           });
-          // sortedOctave = _.sortBy(quantizedOctave, function(pair) {
-          //   return pair[0];
-          // });
-          var maxNoteY = 60; // more octave space by increasing octave
-          var minNoteY = 36;
+          sortedOctave = _.sortBy(quantizedOctave, function(pair) {
+            return pair[0];
+          });
+          // var maxNoteY = 60; // more octave space by increasing octave
+          // var minNoteY = 36;
           var spatialY = _.map(quantizedOctave, function(num, i, list) {
             var distance = 1;
             if(i===0) {
               distance = 0;
             } else {
-              distance = (num[1] - list[i-1][1]);
-              distance = map_range(distance, minY[1], maxY[1], minNoteY, maxNoteY);
-              // distance = (num[1] - list[i-1][1]) % maxNoteY; // wrap for note vals
+              // distance = (num[1] - list[i-1][1]);
+              // distance = map_range(distance, minY[1], maxY[1], minNoteY, maxNoteY);
+              distance = (num[1] - list[i-1][1]) % 5; // wrap for note vals
               //console.log((num[1] - list[i-1][1]) + ' % ' + maxNoteY );
             }
             return distance;
@@ -174,13 +174,15 @@ if (Meteor.isServer) {
             var octdn= 0;
             var note = '' + note + '' + (mod=='r'?'':mod);
             if (0 > parseInt(noteBase)) {
-              octdn = Math.abs(Math.floor(noteBase / 7));
+              octdn = map_percent(noteBase, minY[1], maxY[1]) * 100;
+              // octdn = Math.abs(Math.floor(noteBase / 7));
               console.log('octdn', octdn);
               for (var j = 0; j < octdn; j++) {
                 note = '>' + note + '<';
               };
             } else { 
-              octup = Math.ceil(noteBase / 7);
+              octup = map_percent(noteBase, minY[1], maxY[1]) * 100;
+              // octup = Math.ceil(noteBase / 7);
               console.log('octup', octup);
               for (var k = 0; k < octup; k++) {
                 note = '<' + note + '>';
@@ -197,7 +199,7 @@ if (Meteor.isServer) {
                           mml: '[' + mml + ']',
                           scale: scale,
                           key: key,
-                          tempoMod: data[2].length % 25,
+                          tempoMod: data[2].length % 45,
                           noiseLevel: spatialX[spatialX.length-1],
                           noiseFrquency: maxY[1]
                         }
@@ -290,17 +292,17 @@ if (Meteor.isClient) {
   }
 
   Template.compCreate.events({
-    'change #upload': function(event, template) {
+    // 'change #upload': function(event, template) {
 
-      FS.Utility.eachFile(event, function(file) {
-        Images.insert(file, function (err, fileObj) {
+    //   FS.Utility.eachFile(event, function(file) {
+    //     Images.insert(file, function (err, fileObj) {
 
-          if(err) { console.log(err); }
-          //If !err, we have inserted new doc with ID fileObj._id, and
-          //kicked off the data upload using HTTP
-        });
-      });
-    },
+    //       if(err) { console.log(err); }
+    //       //If !err, we have inserted new doc with ID fileObj._id, and
+    //       //kicked off the data upload using HTTP
+    //     });
+    //   });
+    // },
     // 'load #imgtag': function(event, template) {
 
     //   // var canvas = document.getElementById('canvas');
@@ -348,7 +350,7 @@ if (Meteor.isClient) {
     }
   });
 
-  Router.route('/comp/create', function () {
+  Router.route('/create', function () {
 
     this.layout('polyenvironments');
 
@@ -359,22 +361,22 @@ if (Meteor.isClient) {
 
 
 
-  Router.route('/comp/:_id', function () {
+  // Router.route('/comp/:_id', function () {
 
-    this.layout('polyenvironments');
+  //   this.layout('polyenvironments');
 
-    this.render('comp', {
-      data: function () {
-        return Comps.findOne({_id: this.params._id});
-      }
-    });
+  //   this.render('comp', {
+  //     data: function () {
+  //       return Comps.findOne({_id: this.params._id});
+  //     }
+  //   });
 
-  },{
-    name: 'comp.show'
-  });
+  // },{
+  //   name: 'comp.show'
+  // });
 
-  Accounts.ui.config({
-    passwordSignupFields: "USERNAME_AND_OPTIONAL_EMAIL"
-  });
+  // Accounts.ui.config({
+  //   passwordSignupFields: "USERNAME_AND_OPTIONAL_EMAIL"
+  // });
 }
 
