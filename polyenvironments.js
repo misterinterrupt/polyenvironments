@@ -54,7 +54,7 @@ if (Meteor.isServer) {
         notes.push(front);
       };
 
-      console.log('scale', scales[scale]);
+      // console.log('scale', scales[scale]);
       // console.log('key', notes[key]);
 
       // the chords are indexes into the degrees
@@ -77,7 +77,7 @@ if (Meteor.isServer) {
         //var octave = _.uniq(data[octIdx]);
         var octave = data[octIdx];
         // var minX, minY, maxX, maxY = 0;
-        console.log('num features in octave ' + octIdx, octave.length);
+        // console.log('num features in octave ' + octIdx, octave.length);
         if(octave.length > 0) {
           minX = _.min(octave, function(pair) {
             return pair[0];
@@ -92,10 +92,10 @@ if (Meteor.isServer) {
             return pair[1];
           });
 
-          console.log('minX, minY, maxX, maxY', minX[0], maxX[0], minY[1], maxY[1]);
+          // console.log('minX, minY, maxX, maxY', minX[0], maxX[0], minY[1], maxY[1]);
           var rangeX = maxX[0] - minX[0];
           var rangeY = maxY[1] - minY[1];
-          console.log('rangeX, rangeY', rangeX, rangeY);
+          // console.log('rangeX, rangeY', rangeX, rangeY);
           
 
           // quantize x values 
@@ -103,8 +103,8 @@ if (Meteor.isServer) {
           var quantizedOctave = _.filter(octave, function(num, i) {
             return i%skip==0?num:false;
           });
-          console.log('skip', skip);
-          console.log('quantized length', quantizedOctave.length);
+          // console.log('skip', skip);
+          // console.log('quantized length', quantizedOctave.length);
 
           // get spatial freq of x
           //  - sort by y for x and sort by x for y
@@ -112,7 +112,7 @@ if (Meteor.isServer) {
           var sortedOctave = _.sortBy(quantizedOctave, function(pair) {
             return pair[1];
           });
-          console.log(sortedOctave);
+          // console.log(sortedOctave);
           var maxDistX = 100;
           var spatialX = _.map(sortedOctave, function(num, i, list) {
             var distance = 1;
@@ -139,7 +139,7 @@ if (Meteor.isServer) {
               // distance = (num[1] - list[i-1][1]);
               // distance = map_range(distance, minY[1], maxY[1], minNoteY, maxNoteY);
               distance = (num[1] - list[i-1][1]) % 5; // wrap for note vals
-              //console.log((num[1] - list[i-1][1]) + ' % ' + maxNoteY );
+              // console.log((num[1] - list[i-1][1]) + ' % ' + maxNoteY );
             }
             return distance;
           });
@@ -154,7 +154,7 @@ if (Meteor.isServer) {
             // var modifiers = [' ', 'r ', ' ', '0 ', '0 ', '0 ', '0 ', ' ', ' ', '& ', ' ', ' '];
             var noteLengths = ['r', '0', '&', '1', '1.', '2', '0', 'r', '0', 'r']; 
             var noteBase = quantizedOctave[i][0];
-            //console.log('noteBase', noteBase);
+            // console.log('noteBase', noteBase);
             var noteBase = spatialY[i];
             var interval = parseInt(noteBase % 7);
             // intervals go down from 12 in the negative
@@ -164,11 +164,11 @@ if (Meteor.isServer) {
 
             var note = notes[scales[scale][interval]];
             // var note = notes[scales[0][0]];
-            //console.log('scale index: ' + scales[scale][interval] + ' interval: ' + interval);
+            // console.log('scale index: ' + scales[scale][interval] + ' interval: ' + interval);
             // var mod = modifiers[spatialX[i]%noteLengths.length];
             // var mod = modifiers[0];
             var mod = noteLengths[spatialX[i]];
-          //console.log('mod index', spatialX[i]%10 -1);
+            // console.log('mod index', spatialX[i]%10 -1);
             // add octaves for notes not in the first musical octave of the Y ranges (bipolar)
             var octup= 0;
             var octdn= 0;
@@ -193,7 +193,7 @@ if (Meteor.isServer) {
 
             mml = mml + ' ' + note;
           }
-          console.log("mml ", mml);
+          // console.log("mml ", mml);
 
           var playable = {
                           mml: '[' + mml + ']',
@@ -350,7 +350,7 @@ if (Meteor.isClient) {
         // imgtag.src = fr.result;
       }; // add onload event
 
-      console.log(f);
+      // console.log(f);
       fr.readAsDataURL(f); // get captured image as data URI
       $('#layer1').show();
       $('#video').hide();

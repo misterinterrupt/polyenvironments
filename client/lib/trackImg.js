@@ -28,7 +28,7 @@ trackImage = function trackImage(context, cb) {
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     var corners = event.data;
-    console.log("tracked corners ", corners);
+    // console.log("tracked corners ", corners);
     cb(corners);
     for (var i = 0; i < corners.length; i += 2) {
       context.fillStyle = '#f00';
@@ -63,7 +63,7 @@ findAndDrawFeatures = function(layer1, layer2, image) {
   corners.push(tracking.Fast.findCorners(gray, layer1.width, layer1.height));
   // tracking.Fast.THRESHOLD = 5.0;
   // corners.push(tracking.Fast.findCorners(gray, layer1.width, layer1.height));
-  console.log(corners);
+  // console.log(corners);
   // de-dupe by "octave"
   var octaves = processCorners(corners);
 
@@ -71,7 +71,7 @@ findAndDrawFeatures = function(layer1, layer2, image) {
   var colors = ["#EF2F00", "#9EF200", "#00F479", "#0058F7", "#C500F9"];
   for (var i = octaves.length-1; i >= 0; i--) {
     var octave = octaves[i];
-    console.log("events in octave " + i + ": " + octaves[i].length);
+    // console.log("events in octave " + i + ": " + octaves[i].length);
     for (var j = 0; j < octave.length; j++) {
       context2.fillStyle = colors[i];
       context2.fillRect(octave[j][0], octave[j][1], 3, 3);
@@ -122,7 +122,7 @@ drawToImage = function drawToImage(v,context, canvas) {
   if(v.paused || v.ended) return false; // if no video, exit here
   // context.drawImage(v,0,0,canvas.width,canvas.height); // draw video feed to canvas // done with findAndDrawFetures
   var uri = canvas.toDataURL("image/png"); // convert canvas to data URI
-  console.log(uri); // uncomment line to log URI for testing
+  // console.log(uri); // uncomment line to log URI for testing
   imgtag.src = uri; // add URI to IMG tag src
 }
 
@@ -138,7 +138,7 @@ getCamera = function() {
   function handleVideo(stream) {
     // if found attach feed to video element
     video.src = window.URL.createObjectURL(stream);
-    console.log(video.width);
+    // console.log(video.width);
   }
   function videoError(e) {
     // no webcam found - do something
