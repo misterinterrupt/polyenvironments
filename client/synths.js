@@ -11,11 +11,12 @@ stopMusic = function() {
 playMusic = function(err, music) {
   timbre.pause();
   timbre.reset();
-
-  playingComp1 = pluckComp1(music[1]).start();
-  playingComp2 = pluckComp2(music[2]).start();
-  playingComp3 = chordComp(music[0]).start();
-  playingComp4 = chimesComp(music[3]).start();
+  if(music){
+    playingComp1 = pluckComp1(music[1]).start();
+    playingComp2 = pluckComp2(music[2]).start();
+    playingComp3 = chordComp(music[0]).start();
+    playingComp4 = chimesComp(music[3]).start();
+  }
 }
 
 // function() {
@@ -118,7 +119,7 @@ chordComp = function chordComp(data) {
   var tp = T("pulse", {freq:0.01*data.tempoMod, mul:.04});
   var freq = T("sin", {freq:5, add:2400, mul:800}).kr();
 
-  synth = T("+saw", {freq:(msec * 2)+"ms", add:0.7, mul:0.9}, synth);
+  synth = T("+saw", {freq:(msec * 2)+"ms", add:0.7, mul:0.95}, synth);
   // synth = T("phaser", {freq:freq, Q:0.7, steps:2, mul:0.2}, synth);
   synth = T("hpf" , {cutoff:1420*tp, Q:36}, synth);
   synth = T("delay" , {time:msec, fb:0.6, mix:0.5}, synth);
@@ -141,7 +142,7 @@ chimesComp = function chimesComp(data) {
   var msec = timbre.timevalue("BPM" + tempo + " L16.");
   var xline = T("param", {value:1}).expTo(1000, "9sec");
   var freq  = T("sin", {freq:xline, mul:200, add:800});
-  var gen = T("OscGen", {wave:"tri", freq:freq, env:{type:"adsr", r:80}, mul:0.5});
+  var gen = T("OscGen", {wave:"tri", freq:freq, env:{type:"adsr", r:80}, mul:0.7});
   //var gen = T("PluckGen", {env:T("adsr", {r:100})});
   // gen = T("delay" , {time:msec, fb:0.4, mix:0.4}, gen);
   T("reverb", {room:0.95, damp:0.3, mix:0.55}, gen).play();
