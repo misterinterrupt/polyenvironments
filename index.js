@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var express = require('express');
 var app = express();
 
@@ -10,7 +11,7 @@ app.get('/', function(req, res) {
 });
 
 app.get('/makeMusic', function(req, res) {
-  res.send(makeMusic(req.data));
+  res.send(makeMusic(req.query.data));
 });
 
 var server = app.listen(80, function() {
@@ -21,6 +22,7 @@ var server = app.listen(80, function() {
 
 
 var makeMusic = function(data) {
+  console.log(data);
 
   var music = []; // there, we've made music
   // for 1st octave features,

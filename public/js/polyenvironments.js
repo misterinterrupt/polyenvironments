@@ -1,4 +1,4 @@
-Template.compCreate.rendered = function() {
+var compCreateRender = function() {
   
   $('#layer1').hide();
   var layer1 = document.getElementById('layer1');
@@ -34,8 +34,7 @@ Template.compCreate.rendered = function() {
   getCamera();
 }
 
-
-Template.compCreate.events({
+var setupEvents = function() {
   // 'change #upload': function(event, template) {
 
   //   FS.Utility.eachFile(event, function(file) {
@@ -54,7 +53,7 @@ Template.compCreate.events({
   //   // findAndDrawFeatures(image, canvas);
 
   // },
-  'click #capture': function(event, template) {
+  $('#capture').on('click', function(event, template) {
     $('#layer1').show();
     $('#video').hide();
     // var canvas = document.getElementById('canvas');
@@ -65,18 +64,21 @@ Template.compCreate.events({
     var layer2 = document.getElementById('layer2');
     var image =  document.getElementById('video');
     findAndDrawFeatures(layer1, layer2, image);
-  },
-  'click #play': function() {
+  });
+
+  $('#play').on('click', function() {
     $('#layer1').show();
     $('#video').hide();
-    Meteor.call("makeMusic", currentData, playMusic);
-  },
-  'click #stop': function() {
+    $.get("/makeMusic", {data: currentData}, playMusic);
+  });
+
+  $('#stop').on('click', function() {
     stopMusic();
     $('#video').show();
     $('#layer1').hide();
-  },
-  'change #fileselect': function(event, template) {
+  });
+
+  $('#fileselect').on('change', function(event, template) {
 
     var layer1 = document.getElementById('layer1');
     var layer2 = document.getElementById('layer2');
@@ -97,5 +99,10 @@ Template.compCreate.events({
     fr.readAsDataURL(f); // get captured image as data URI
     $('#layer1').show();
     $('#video').hide();
-  }
+  });
+};
+
+$(function(){
+  compCreateRender();
+  setupEvents();
 });
