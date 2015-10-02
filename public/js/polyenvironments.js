@@ -69,7 +69,7 @@ var setupEvents = function() {
   $('#play').on('click', function() {
     $('#layer1').show();
     $('#video').hide();
-    $.get("/makeMusic", {data: currentData}, playMusic);
+    $.post("/makeMusic", {data: currentData}, playMusic);
   });
 
   $('#stop').on('click', function() {

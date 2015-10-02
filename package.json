@@ -7,6 +7,7 @@
     "npm": "2.1.x"
   },
   "dependencies": {
+    "body-parser": "^1.14.1",
     "express": "^4.13.3",
     "jade": "^1.11.0",
     "underscore": "^1.8.3"

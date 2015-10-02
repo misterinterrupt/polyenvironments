@@ -5,14 +5,21 @@ var defaultPort = process.env.PORT || 80;
 
 app.set('view engine', 'jade');
 app.use(express.static('public'));
+//parse post vars - from: http://stackoverflow.com/questions/5710358/how-to-get-post-a-query-in-express-js-node-js
+var bodyParser = require('body-parser')
+app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+}));
 
 // respond with "hello world" when a GET request is made to the homepage
 app.get('/', function(req, res) {
   res.render('./compCreate.jade');
 });
 
-app.get('/makeMusic', function(req, res) {
-  res.send(makeMusic(req.query.data));
+app.post('/makeMusic', function(req, res) {
+
+  res.send(makeMusic(req.body.data));
 });
 
 var server = app.listen(defaultPort, function() {
