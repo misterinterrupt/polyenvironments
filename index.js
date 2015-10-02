@@ -2,10 +2,11 @@ var express = require('express');
 var app = express();
 
 app.set('view engine', 'jade');
+app.use(express.static('public'));
 
 // respond with "hello world" when a GET request is made to the homepage
 app.get('/', function(req, res) {
-  res.render('./layout.jade');
+  res.render('./compCreate.jade');
 });
 
 app.get('/makeMusic', function(req, res) {
