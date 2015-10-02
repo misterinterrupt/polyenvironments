@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var express = require('express');
 var app = express();
+var defaultPort = process.env.PORT || 80;
 
 app.set('view engine', 'jade');
 app.use(express.static('public'));
@@ -14,7 +15,7 @@ app.get('/makeMusic', function(req, res) {
   res.send(makeMusic(req.query.data));
 });
 
-var server = app.listen(80, function() {
+var server = app.listen(defaultPort, function() {
   var host = server.address().address;
   var port = server.address().port;
   console.log('polyenvironments listening http://%s:%s', host, port);
