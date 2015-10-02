@@ -5,5 +5,24 @@
   "engines": {
     "node": "0.10.40",
     "npm": "2.1.x"
-  }
+  },
+  "dependencies": {
+    "express": "^4.13.3",
+    "jade": "^1.11.0"
+  },
+  "main": "polyenvironments.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/misterinterrupt/polyenvironments.git"
+  },
+  "author": "misterinterrupt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/misterinterrupt/polyenvironments/issues"
+  },
+  "homepage": "https://github.com/misterinterrupt/polyenvironments#readme"
 }
