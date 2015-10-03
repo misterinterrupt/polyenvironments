@@ -18,19 +18,18 @@ app.get('/', function(req, res) {
 });
 
 app.post('/makeMusic', function(req, res) {
-
   res.send(makeMusic(req.body.data));
 });
 
 var server = app.listen(defaultPort, function() {
   var host = server.address().address;
   var port = server.address().port;
-  console.log('polyenvironments listening http://%s:%s', host, port);
+  console.log("polyenvironments listening http://%s:%s", host, port);
 });
 
 
 var makeMusic = function(data) {
-  console.log(data);
+  // console.log(data);
 
   var music = []; // there, we've made music
   // for 1st octave features,
@@ -180,7 +179,7 @@ var makeMusic = function(data) {
         if (0 > parseInt(noteBase)) {
           octdn = map_percent(noteBase, minY[1], maxY[1]) * 100;
           // octdn = Math.abs(Math.floor(noteBase / 7));
-          // console.log('octdn', octdn);
+          console.log('octdn', octdn);
           for (var j = 0; j < octdn; j++) {
             note = '>' + note + '<';
           };
