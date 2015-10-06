@@ -69,7 +69,18 @@ var setupEvents = function() {
   $('#play').on('click', function() {
     $('#layer1').show();
     $('#video').hide();
-    $.post("/makeMusic", {data: currentData}, playMusic);
+    // var dat = JSON.stringify([{ 'data': currentData }]);
+    // var dat = [{ 'data': currentData}];
+    // var dat = JSON.stringify(currentData);
+    var dat = { 'data': currentData };
+    $.ajax({
+          url: '/makeMusic/',
+          type: 'post',
+          dataType: 'json',
+          contentType: 'application/json',
+          success: playMusic,
+          data: JSON.stringify(dat)
+        });
   });
 
   $('#stop').on('click', function() {

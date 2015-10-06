@@ -1,15 +1,23 @@
 var _ = require('underscore');
 var express = require('express');
+var bodyParser = require('body-parser')
 var app = express();
 var defaultPort = process.env.PORT || 80;
 
 app.set('view engine', 'jade');
 app.use(express.static('public'));
+
 //parse post vars - from: http://stackoverflow.com/questions/5710358/how-to-get-post-a-query-in-express-js-node-js
-var bodyParser = require('body-parser')
-app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use( bodyParser.json({
+  extended: false,
+  parameterLimit: 10000,
+  limit: 1024 * 1024 * 10
+}) );       // to support JSON-encoded bodies
+
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
-  extended: true
+  extended: false,
+  parameterLimit: 10000,
+  limit: 1024 * 1024 * 10
 }));
 
 // respond with "hello world" when a GET request is made to the homepage
@@ -18,6 +26,7 @@ app.get('/', function(req, res) {
 });
 
 app.post('/makeMusic', function(req, res) {
+  console.log(req.body.data.length);
   res.send(makeMusic(req.body.data));
 });
 
@@ -57,8 +66,8 @@ var makeMusic = function(data) {
     notes.push(front);
   };
 
-  // console.log('scale', scales[scale]);
-  // console.log('key', notes[key]);
+  console.log('scale', scales[scale]);
+  console.log('key', notes[key]);
 
   // the chords are indexes into the degrees
   var chords = [
@@ -80,7 +89,7 @@ var makeMusic = function(data) {
     //var octave = _.uniq(data[octIdx]);
     var octave = data[octIdx];
     // var minX, minY, maxX, maxY = 0;
-    // console.log('num features in octave ' + octIdx, octave.length);
+    console.log('num features in octave ' + octIdx + ' is ' + octave.length);
     if(octave.length > 0) {
       minX = _.min(octave, function(pair) {
         return pair[0];
@@ -106,8 +115,8 @@ var makeMusic = function(data) {
       var quantizedOctave = _.filter(octave, function(num, i) {
         return i%skip==0?num:false;
       });
-      // console.log('skip', skip);
-      // console.log('quantized length', quantizedOctave.length);
+      console.log('quantize period', skip);
+      console.log('quantized octave length', quantizedOctave.length);
 
       // get spatial freq of x
       //  - sort by y for x and sort by x for y
@@ -115,7 +124,7 @@ var makeMusic = function(data) {
       var sortedOctave = _.sortBy(quantizedOctave, function(pair) {
         return pair[1];
       });
-      // console.log(sortedOctave);
+      console.log(sortedOctave);
       var maxDistX = 100;
       var spatialX = _.map(sortedOctave, function(num, i, list) {
         var distance = 1;
@@ -155,11 +164,11 @@ var makeMusic = function(data) {
       for (var i = 0; i < spatialX.length; i++) {
         // rest, rest, rest, chord, chord, note, note, note, note, tie,
         // var modifiers = [' ', 'r ', ' ', '0 ', '0 ', '0 ', '0 ', ' ', ' ', '& ', ' ', ' '];
-        var noteLengths = ['r', '0', '&', '1', '1.', '2', '0', 'r', '0', 'r']; 
+        var noteLengths = ['r', '0', '&', '1', '1.', '2', '0', 'r', '0', 'r'];
         var noteBase = quantizedOctave[i][0];
-        // console.log('noteBase', noteBase);
+        console.log('noteBase', noteBase);
         var noteBase = spatialY[i];
-        var interval = parseInt(noteBase % 7);
+        var interval = Number(noteBase % 7);
         // intervals go down from 12 in the negative
         if(0 > interval) {
           interval = 7 + interval;
@@ -167,7 +176,7 @@ var makeMusic = function(data) {
 
         var note = notes[scales[scale][interval]];
         // var note = notes[scales[0][0]];
-        // console.log('scale index: ' + scales[scale][interval] + ' interval: ' + interval);
+        console.log('scale index: ' + scales[scale][interval] + ' interval: ' + interval);
         // var mod = modifiers[spatialX[i]%noteLengths.length];
         // var mod = modifiers[0];
         var mod = noteLengths[spatialX[i]];
@@ -176,7 +185,10 @@ var makeMusic = function(data) {
         var octup= 0;
         var octdn= 0;
         var note = '' + note + '' + (mod=='r'?'':mod);
-        if (0 > parseInt(noteBase)) {
+
+        console.log("Number(noteBase)", Number(noteBase), 10);
+
+        if (0 > Number(noteBase)) {
           octdn = map_percent(noteBase, minY[1], maxY[1]) * 100;
           // octdn = Math.abs(Math.floor(noteBase / 7));
           console.log('octdn', octdn);
@@ -186,7 +198,7 @@ var makeMusic = function(data) {
         } else { 
           octup = map_percent(noteBase, minY[1], maxY[1]) * 100;
           // octup = Math.ceil(noteBase / 7);
-          // console.log('octup', octup);
+          console.log('octup', octup);
           for (var k = 0; k < octup; k++) {
             note = '<' + note + '>';
           };
