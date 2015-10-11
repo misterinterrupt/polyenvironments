@@ -8,7 +8,8 @@ stopMusic = function() {
   timbre.reset();
 }
 
-playMusic = function(err, music) {
+playMusic = function(music) {
+
   timbre.pause();
   timbre.reset();
   if(music){

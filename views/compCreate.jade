@@ -3,9 +3,9 @@ extends ./index.jade
 
 block content
   div(class="createActions", style="position: relative; float:left")
-    button(id="capture") capture
-    <!-- input class="button" id="upload" type="file" -->
-    <!-- Used to capture frame from webcam video feed -->
+    //- button(id="capture") capture
+    //- <!-- input class="button" id="upload" type="file" -->
+    //- <!-- Used to capture frame from webcam video feed -->
     input(type="button", value="Play", id="play")
     input(type="button", value="Stop", id="stop")
     br
@@ -14,13 +14,13 @@ block content
 
   div(class="comp", style="")
 
-    <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-    video(id="video", width="500", height="400", preload, autoplay, loop, muted)
+    //- <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
+    //- video(id="video", width="500", height="400", preload, autoplay, loop, muted)
 
     <!-- Selected image will be draw to a canvas -->
     canvas(id="layer1", width="500", height="400", style="float: left;")
       
-    canvas(id="layer2",width="500", height="400", style="float: left;;")
+    //- canvas(id="layer2",width="500", height="400", style="float: left;;")
 
     <!-- Or alternatively added to an img tag 
-    <img id="imgtag" src="" width="500" height="375" alt="capture img" /-->
+    //- <img id="imgtag" src="" width="500" height="375" alt="capture img" /-->

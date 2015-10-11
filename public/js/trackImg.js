@@ -45,8 +45,8 @@ findAndDrawFeatures = function(layer1, layer2, image) {
   var context1 = layer1.getContext("2d");
   var context2 = layer2.getContext("2d");
 
-  context2.clearRect(0, 0, layer2.width, layer2.height);
   if(image) {
+    context1.clearRect(0, 0, layer1.width, layer1.height);
     context1.drawImage(image, 0, 0, layer1.width, layer1.height);
   }
   var imageData = context1.getImageData(0, 0, layer1.width, layer1.height);
@@ -108,9 +108,12 @@ processCorners = function processCorners(data) {
 }
 
 drawDataURIOnCanvas = function drawDataURIOnCanvas(strDataURI, canvas, cb) {
+    
     "use strict";
     var img = new window.Image();
     img.addEventListener("load", function () {
+        canvas = canvas;
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
         canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
         cb();
     });
