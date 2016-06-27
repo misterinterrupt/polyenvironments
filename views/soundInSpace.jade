@@ -1,0 +1,15 @@
+//- compCreate.jade
+extends ./layout.jade
+block styles
+  link(href="/css/soundinspace.css", rel="stylesheet")
+block main
+  div(class="container-fluid")
+    div(class="row")
+      div(class="col-sm-5 col-sm-offset-1")
+        h2 Sound In Space
+        hr
+      div(class="col-sm-6 map")
+        div(class="google-map-canvas" id="map-canvas")
+block scripts
+    script(src='http://maps.googleapis.com/maps/api/js?key=AIzaSyA0ceAZLT7F0PRc_nqS1YphGT21DMbfvLA')
+    script(src='/js/soundinspace.js')

@@ -25,6 +25,9 @@ app.get('/', function(req, res) {
   res.render('./compCreate.jade');
 });
 
+app.get('/soundinspace', function(req, res) {
+  res.render('./soundInSpace.jade');
+});
 
 var server = app.listen(defaultPort, function() {
   var host = server.address().address;
