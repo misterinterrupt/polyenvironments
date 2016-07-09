@@ -4,14 +4,19 @@ block styles
   link(href="/css/soundinspace.css", rel="stylesheet")
 block main
   div(class="container-fluid")
-    div(class="row")
+    div(class="row error")
+
+    div(class="row content")
       div(class="col-sm-5 col-sm-offset-1")
         h2 Sound In Space
         hr
-      div(class="col-sm-6 map")
-        p Sound Playback is tied to GPS.
+      div(class="col-sm-6 error")
+        p This app cannot be used on this device 
+
+      div(class="col-sm-6 content")
+        p Sounds change based on global position and phone orientation.
         div(id="status")
           p Touch to Load
 block scripts
-    script(src='https://code.createjs.com/soundjs-0.5.2.min.js')
+    script(src='https://code.createjs.com/soundjs-0.6.2.min.js')
     script(src='/js/app.js')
