@@ -1,13 +1,15 @@
 var display;
 
-function init() {
+function init(p) {
   display = $("#status");
-  display.on("click", handleClick);
+  display.on("click", function(e) {
+    handleClick.bind(this)(e, p);
+  });
 }
 
-function handleClick(event) {
+function handleClick(event, p) {
   display.off("click", handleClick);
-  var myApp = new myNameSpace.MyApp();
+  var myApp = new myNameSpace.MyApp(p);
 }
 
 this.myNameSpace = this.myNameSpace || {};
@@ -15,11 +17,10 @@ this.myNameSpace = this.myNameSpace || {};
 (function() {
 
   // the grain class
-  function grain(context, cloudGain, buffer, positionx, positiony, attack, release, spread, pan, trans) {
+  function grain(p, context, cloudGain, buffer, positionx, positiony, attack, release, spread, pan, trans) {
 
     this.context = context;
   	this.now = context.currentTime; // update the time value
-  	// TODO:: get the source from sound via id, do we need buffer?
   	this.source = context.createBufferSource();
   	this.source.playbackRate.value = this.source.playbackRate.value * trans;
   	this.source.buffer = buffer;
@@ -27,19 +28,19 @@ this.myNameSpace = this.myNameSpace || {};
   	this.envelopeGain = context.createGain();
 
     // TODO:: decide on use of panning
-  	//experimenting with adding a panner node - not all the grains will be panned for better performance
-  	// var yes = parseInt(p.random(3),10);
-  	// if( yes === 1){
-  	// 	this.panner = context.createPanner();
-  	// 	this.panner.panningModel = "equalpower";
-  	// 	this.panner.distanceModel = "linear";
-  	// 	this.panner.setPosition(p.random(pan * -1,pan),0,0);
-  	// 	//connections
-  	// 	this.source.connect(this.panner);
-  	// 	this.panner.connect(this.gain);
-  	// }else{
+  	// experimenting with adding a panner node - not all the grains will be panned for better performance
+  	var yes = parseInt(p.random(3),10);
+  	if( yes === 1){
+  		this.panner = context.createPanner();
+  		this.panner.panningModel = "equalpower";
+  		this.panner.distanceModel = "linear";
+  		this.panner.setPosition(p.random(pan * -1,pan),0,0);
+  		//connections
+  		this.source.connect(this.panner);
+  		this.panner.connect(this.envelopeGain);
+  	}else{
   		this.source.connect(this.envelopeGain);
-  	// }
+  	}
 
 
   	this.envelopeGain.connect(cloudGain);
@@ -96,8 +97,8 @@ this.myNameSpace = this.myNameSpace || {};
   }
 
 
-  function MyApp() {
-    this.init();
+  function MyApp(p) {
+    this.start(p);
   }
 
   MyApp.prototype = {
@@ -110,13 +111,14 @@ this.myNameSpace = this.myNameSpace || {};
         {id:"PIGS6", src:"PIGS6.ogg"},
         {id:"TICKLES", src:"TICKLES.ogg"}
     ],
-    audioPath :"audio/",
+    audioPath: "audio/",
     sounds: [],
     context: null,
     cloud: null,
 
-
-    init: function() {
+    start: function(p) {
+      this.p = p;
+      console.log(this.p, p, 'butt');
       this.displayMessage = document.getElementById("status");
 
       if (!createjs.Sound.initializeDefaultPlugins()) {
@@ -172,8 +174,7 @@ this.myNameSpace = this.myNameSpace || {};
       // create new grain
       makeGrain = function() {
         var buffer = sound.playbackResource;
-        // TODO:: change signature to not include processing()?)
-        var g = new grain(app.masterContext, cloud.gain, buffer, 1.0, 1.0, cloud.attack, cloud.release, cloud.jitter, cloud.pan, 1.0);
+        var g = new grain(app.p, app.masterContext, cloud.gain, buffer, 1.0, 1.0, cloud.attack, cloud.release, cloud.jitter, cloud.pan, 1.0);
         // keep the cloud's grains in an array
         cloud.grains[cloud.graincount] = g;
         cloud.graincount+=1;
@@ -183,7 +184,7 @@ this.myNameSpace = this.myNameSpace || {};
         }
         // next interval will be between 70ms and 1000ms
         cloud.interval = (cloud.density * 1000) + 70;
-        cloud.timeout = setTimeout(makeGrain, cloud.interval);
+        cloud.timeout = setTimeout(makeGrain.bind(this), cloud.interval);
       };
       makeGrain();
     }
@@ -192,4 +193,25 @@ this.myNameSpace = this.myNameSpace || {};
   myNameSpace.MyApp = MyApp;
 }());
 
-$( document ).ready(init);
+$( document ).ready(function() {
+  var canvas2 = document.getElementById('canvas2');
+	var processing = new Processing(canvas2,function(p) {
+    w = parseInt($('#waveform').css('width'),10);
+  	h = parseInt($('#waveform').css('height'),10);
+  	p.setup = function() {
+      console.log('processing? ', p);
+  		p.size(w,h);
+  		p.background(0,0);//backgorund black alpha 0
+  		p.frameRate(24);
+  		p.noLoop();
+  		//change the size on resize
+  		$(window).resize(function() {
+  			w = parseInt($('#waveform').css('width'),10);
+  			h = parseInt($('#waveform').css('height'),10);
+  			p.size(w,h);
+  		});
+  		return init(p);
+  	};
+  });
+
+});
