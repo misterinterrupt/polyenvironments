@@ -1,5 +1,5 @@
 Grain
-- essentially builds a signal path, plays a sound for a time period
+- builds a signal path, plays a sound for a time period
   and then disconnects the nodes in the signal path
 
   - master context, cloud gain node passed in
@@ -11,6 +11,7 @@ Grain
   - envelope gain node connect to cloud gain node
 
 Cloud
+- periodically creates a grain of a certain length & other params
   - sound resource passed in
   - set of grains
   - grain parameters
