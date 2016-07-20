@@ -2,125 +2,98 @@ window.irq = window.irq || {};
 
 (function(exports) {
 
-  // the grain class
-  function grain(context, cloudGain, buffer, positionx, positiony, attack, release, spread, pan, trans) {
-    this.context = context;
-    this.now = context.currentTime; // update the time value
-    this.source = context.createBufferSource();
-    this.source.playbackRate.value = this.source.playbackRate.value * trans;
-    this.source.buffer = buffer;
-    // create the gain for enveloping
-    this.envelopeGain = context.createGain();
-    // TODO:: decide on any further use of panning
-    if(parseInt(irq.p.random(3),10) === 1) {
-      this.panner = context.createPanner();
-      this.panner.panningModel = "equalpower";
-      this.panner.distanceModel = "linear";
-      this.panner.setPosition(irq.p.random(pan * -1,pan),0,0);
-      //connections
-      this.source.connect(this.panner);
-      this.panner.connect(this.envelopeGain);
-    }else{
-      this.source.connect(this.envelopeGain);
-    }
-    this.envelopeGain.connect(cloudGain);
+  function grain(context, cloudGain, buffer, position, amp, pan, trans, length, attack, release) {
 
-    // TODO:: replace mouse position with orientation params
-    //update the position and calcuate the offset
-    this.offset = 0.05 + positionx * (buffer.duration / irq.w); //pixels to seconds
-    console.log('grain offset:', this.offset);
-    // update and calculate the amplitude
-    // this.amp = this.positiony / h;
-    // this.amp = irq.p.map(this.amp,0.0,1.0,1.0,0.0) * 0.7;
-    this.amp = 1.0;
-
-    //parameters
-    this.attack = attack * 0.4;
-    this.release = release * 1.5;
-
-    if(this.release < 0){
-      this.release = 0.1; // 0 - release causes mute for some reason
-    }
-
-    var verticalRatio = positiony / irq.h;
-    // console.log('verticalRatio', verticalRatio);
-    this.spread = verticalRatio * spread;
-    // console.log('spread', this.spread);
-
-    this.randomoffset = (Math.random() * this.spread) - (this.spread / 2); //in seconds
-    ///envelope
-    this.source.start(this.now, this.offset + this.randomoffset, this.attack + this.release); //parameters (when,offset,duration)
-    this.envelopeGain.gain.setValueAtTime(0.0, this.now);
-    this.envelopeGain.gain.linearRampToValueAtTime(this.amp, this.now + this.attack);
-    this.envelopeGain.gain.linearRampToValueAtTime(0, this.now + (this.attack +  this.release) );
+    var now = context.currentTime; // update the time value
+    var source = context.createBufferSource();
+    source.playbackRate.value = source.playbackRate.value * trans;
+    source.buffer = buffer;
+    var envelopeGain = context.createGain();
+    var panner = context.createPanner();
+    panner.panningModel = "equalpower";
+    panner.distanceModel = "linear";
+    panner.setPosition(pan, 0.0, 1.0);
+    source.connect(panner);
+    panner.connect(envelopeGain);
+    envelopeGain.connect(cloudGain);
+    source.start(now, position, length); // parameters (when,offset,duration)
+    envelopeGain.gain.setValueAtTime(0.0, now);
+    envelopeGain.gain.linearRampToValueAtTime(amp, now + attack);
+    envelopeGain.gain.linearRampToValueAtTime(0, (now + length) - release );
 
     //garbagio collectionism
-    this.source.stop(this.now + this.attack + this.release + 0.1);
-    var tms = (this.attack + this.release) * 1000 * this.offset; //calculate the time in miliseconds
-    console.log('ttl', tms);
-    var grain = this;
+    var endTimes = now + length + 0.1;
+    source.stop(endTimes);
+    var ttl = length * 1000 + 200;
     setTimeout(function() {
-      grain.envelopeGain.disconnect();
-      if(this.panner) {
-        this.panner.disconnect();
-      }
-    },tms + 200);
-
-    // //drawing the lines
-    // p.stroke(p.random(125) + 125,p.random(250),p.random(250)); //,(this.amp + 0.8) * 255
-    // //p.strokeWeight(this.amp * 5);
-    // this.randomoffsetinpixels = this.randomoffset / (buffer.duration / w);
-    // //p.background();
-    // p.line(this.positionx + this.randomoffsetinpixels,0,this.positionx + this.randomoffsetinpixels,p.height);
-    // setTimeout(function(){
-    //   p.background();
-    //   p.line(that.positionx + that.randomoffsetinpixels,0,that.positionx + that.randomoffsetinpixels,p.height);
-    // },200);
-
+      envelopeGain.disconnect();
+      panner.disconnect();
+      source.disconnect();
+    }, ttl);
   }
 
-  // the cloud function
-  function cloud(sound, masterContext, config) {
-    // master gain node
+  // a cloud of grains
+  function Cloud(sound, masterContext, cloudParams, grainParams) {
+    console.log('new cloud');
+    // connect the cloud gain node to the context destination
     var cloudGain = masterContext.createGain();
     cloudGain.connect(masterContext.destination);
     cloudGain.gain.setValueAtTime(1.0, masterContext.currentTime);
-    // grains array
-    var graincount = 0;
-    var grains = [];
-    var timeout;
+    // timeout responsible for calling makeGrain continually
+    var sprayTimeout;
+    var grainCount = 0;
 
-    config = config || {};
-    // onset
-    config.attack = 0.10;
-    // falloff
-    config.release = 0.40;
-    // speed factor with which grains are created
-    config.density = 0.10;
-    // dry/wet amount of reverb
-    config.reverb = 1.0;
-    config.spread = 0.8;
-    config.pan = 0.1;
-    config.trans = 1.0;
+    // times are ms or a function that returns ms
+    var defaultCloudParams = {
+      // speed factor with which grains are created
+      interval: 60,
+      // max grain polyphony for this cloud
+      density: 8,
+      // random position amount
+      jitter: 0.2,
+      // random pan amount
+      spread: 3.0,
+      // length in s of each grain
+      grainLength: 1.5
+    };
+    // times are in seconds
+    var defaultGrainParams = {
+      attack:  0.1,
+      release: 0.2,
+      pan: 0.0,
+      trans: 1.0
+    };
+
+    // TODO: take params from args
+    cloudParams = defaultCloudParams;
+    grainParams = defaultGrainParams;
+
+    // TODO: check for functions in params that can be dynamic or static
+    function grainPosition(buffer) {
+      var pos = 45.0;
+      return pos;
+    }
+
+    function grainPan() {
+      return grainParams.pan;
+    }
+
+    function grainTrans() {
+      return grainParams.trans;
+    }
 
     // create grains
     function makeGrain() {
       var buffer = sound.playbackResource;
-      var g = new grain(masterContext, cloudGain, buffer,
-        irq.p.mouseX, irq.p.mouseY,
-        config.attack, config.release, config.spread, config.pan, config.trans);
-
-      // keep the cloud's grains in an array
-      grains[graincount] = g;
-      graincount += 1;
-
-      if(graincount > 20) {
-        graincount = 0;
-      }
-
-      // next interval will be
-      config.interval = ((config.density + config.offset) * buffer.duration) + 33;
-      timeout = setTimeout(makeGrain.bind(cloud.makeGrain), config.interval);
+      var position = grainPosition(buffer);
+      var pan = grainPan();
+      var amp = 1.0;
+      var trans = grainTrans();
+      var length = cloudParams.grainLength;
+      var attack = grainParams.attack;
+      var release = grainParams.release;
+      var g = grain(masterContext, cloudGain, buffer, position, amp, pan, trans, length, attack, release);
+      sprayTimeout = setTimeout(makeGrain, cloudParams.interval);
     }
 
     function startGrains() {
@@ -128,7 +101,7 @@ window.irq = window.irq || {};
     }
 
     function stopGrains() {
-      clearTimeout(timeout);
+      clearTimeout(sprayTimeout);
     }
 
     return {
@@ -179,7 +152,7 @@ window.irq = window.irq || {};
 
   // make a grain cloud
   function createCloud(sound) {
-    clouds[sound.id] = new cloud(sound, masterContext, config);
+    clouds[sound.id] = new Cloud(sound, masterContext);
     clouds[sound.id].startGrains();
   }
 
