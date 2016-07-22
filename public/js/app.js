@@ -51,7 +51,7 @@ $( document ).ready(function() {
   var sources = [
     {id:"FLAPPY", src:"flappy.ogg"},
     {id:"PIGS6", src:"PIGS6.ogg"},
-    {id:"TICKLES", src:"TICKLES.ogg"}
+    {id:"TICKLES", src:"TICKLES.mp3"}
   ];
   var clouds = [];
   var sounds = [];
@@ -74,16 +74,13 @@ $( document ).ready(function() {
     window.addEventListener('deviceorientation', function(eventData) {
       // gamma is the left-to-right tilt in degrees, where right is positive
       var tiltLR = eventData.gamma;
-
       // beta is the front-to-back tilt in degrees, where front is positive
       var tiltFB = eventData.beta;
-
       // alpha is the compass direction the device is facing in degrees
       var pointing = eventData.alpha;
-
-      orientation.tiltLR = tiltLR; // F/B dir on phone
-      orientation.tiltFB = tiltFB; // pointing on phone
-      orientation.pointing = pointing; // R/L on phone
+      orientation.tiltLR = tiltLR;
+      orientation.tiltFB = tiltFB;
+      orientation.pointing = pointing; // null on laptops
     }, false);
 
     $(displayMessage).append("<p>loading audio</p>");
@@ -97,7 +94,7 @@ $( document ).ready(function() {
   }
 
   function handleLoad(event) {
-    if(event.id ==="FLAPPY") {
+    if(event.id ==="TICKLES") {
       var sound = createjs.Sound.createInstance(event.id);
       $(displayMessage).append("<p>Created a sound using the file: " + event.id + "</p>");
       createCloud(sound);
@@ -161,13 +158,13 @@ $( document ).ready(function() {
       // speed factor with which grains are created
       interval: 60,
       // max grain polyphony for this cloud
-      density: 8,
+      density: 12,
       // random position amount
       jitter: 0.2,
       // random pan amount
       spread: 3.0,
       // length in s of each grain
-      grainLength: 1.5
+      grainLength: 0.5
     };
     // times are in seconds
     var defaultGrainParams = {
@@ -183,18 +180,18 @@ $( document ).ready(function() {
 
     // TODO: check for functions in params that can be dynamic or static
     function grainPosition(buffer) {
-      var pos = 45.0;
-      return pos;
+      var position_ratio = irq.p.map(irq.SiS.orientation.pointing, 0.0, 360.0, 0.0, 0.999);
+      return buffer.duration * position_ratio;
     }
 
     function grainPan() {
       // grainParams.pan
-      return irq.p.map(irq.SiS.orientation.tiltLR, -180.0, 180.0, -20.0, 20.0);
+      return irq.p.map(irq.SiS.orientation.tiltLR, -180.0, 180.0, -10.0, 10.0);
     }
 
     function grainTrans() {
       // grainParams.trans
-      return irq.p.map(irq.SiS.orientation.tiltFB, -180.0, 180.0, -2.0, 3.0);
+      return irq.p.map(irq.SiS.orientation.tiltFB, -180.0, 180.0, 0.6, 1.6);
     }
 
     // create grains
@@ -202,7 +199,7 @@ $( document ).ready(function() {
       var buffer = sound.playbackResource;
       var position = grainPosition(buffer);
       var pan = grainPan();
-      var amp = 1.0;
+      var amp = 0.9;
       var trans = grainTrans();
       var length = cloudParams.grainLength;
       var attack = grainParams.attack;
