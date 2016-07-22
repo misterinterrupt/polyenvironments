@@ -31,8 +31,10 @@ TODO:
       toggle sound on/off
       toggle touchscreen X,Y
 
-    Touchscreen
-      80% of all screens
+    Control Signals
+      100% of the screen is an x/y touch pad
+      alpha, beta, gamma of accelerometer
+      gps long/lat changes file position
 
 
     Area object

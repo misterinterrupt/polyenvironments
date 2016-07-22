@@ -4,11 +4,12 @@ $( document ).ready(function() {
 
   // kick off the cloud process
   function initSound(p) {
-    irq.p = p;
+    window.irq.p = p;
     var display;
     display = $("#status");
     function handleClick(event) {
       display.off("click");
+      // HEY: start the app here
       window.irq.SiS.start();
     }
     display.on("click", handleClick);
@@ -22,7 +23,7 @@ $( document ).ready(function() {
     window.irq.w = parseInt($('#canvas2').css('width'),10);
     window.irq.h = parseInt($('#canvas2').css('height'),10);
     p.setup = function() {
-      console.log('processing? ', p);
+      console.log('processing, anyone? ', p);
       p.size(window.irq.w, window.irq.h);
       p.background(0,1);//backgorund black alpha 0
       p.frameRate(24);
@@ -55,14 +56,36 @@ $( document ).ready(function() {
   var clouds = [];
   var sounds = [];
   var config;
+  var orientation = {
+    tiltLR: 0.0,
+    tiltFB: 0.0,
+    pointing: 0.0
+  };
 
+  // kick off the control data setup and the creation of clouds
   function start() {
     displayMessage = document.getElementById("status");
-    if (!createjs.Sound.initializeDefaultPlugins()) {
+    if (!createjs.Sound.initializeDefaultPlugins() || !window.DeviceOrientationEvent) {
       document.getElementById("error").style.display = "block";
       document.getElementById("content").style.display = "none";
       return;
     }
+    // Listen for the deviceorientation event and handle the raw data
+    window.addEventListener('deviceorientation', function(eventData) {
+      // gamma is the left-to-right tilt in degrees, where right is positive
+      var tiltLR = eventData.gamma;
+
+      // beta is the front-to-back tilt in degrees, where front is positive
+      var tiltFB = eventData.beta;
+
+      // alpha is the compass direction the device is facing in degrees
+      var pointing = eventData.alpha;
+
+      orientation.tiltLR = tiltLR; // F/B dir on phone
+      orientation.tiltFB = tiltFB; // pointing on phone
+      orientation.pointing = pointing; // R/L on phone
+    }, false);
+
     $(displayMessage).append("<p>loading audio</p>");
     createjs.Sound.registerPlugins([createjs.WebAudioPlugin]);
     createjs.Sound.alternateExtensions = ["mp3"];
@@ -88,7 +111,8 @@ $( document ).ready(function() {
   }
 
   exports.SiS = {
-    start: start
+    start: start,
+    orientation: orientation
   };
 
   function grain(context, cloudGain, buffer, position, amp, pan, trans, length, attack, release) {
@@ -164,11 +188,13 @@ $( document ).ready(function() {
     }
 
     function grainPan() {
-      return grainParams.pan;
+      // grainParams.pan
+      return irq.p.map(irq.SiS.orientation.tiltLR, -180.0, 180.0, -20.0, 20.0);
     }
 
     function grainTrans() {
-      return grainParams.trans;
+      // grainParams.trans
+      return irq.p.map(irq.SiS.orientation.tiltFB, -180.0, 180.0, -2.0, 3.0);
     }
 
     // create grains
