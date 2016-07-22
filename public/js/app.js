@@ -1,6 +1,95 @@
 window.irq = window.irq || {};
 
+$( document ).ready(function() {
+
+  // kick off the cloud process
+  function initSound(p) {
+    irq.p = p;
+    var display;
+    display = $("#status");
+    function handleClick(event) {
+      display.off("click");
+      window.irq.SiS.start();
+    }
+    display.on("click", handleClick);
+  }
+
+  // set up processing first
+  // it is essentially the app UI
+  var canvas2 = document.getElementById('canvas2');
+  var processing = new Processing(canvas2,function(p) {
+    // shoving specifics about the sketch into global
+    window.irq.w = parseInt($('#canvas2').css('width'),10);
+    window.irq.h = parseInt($('#canvas2').css('height'),10);
+    p.setup = function() {
+      console.log('processing? ', p);
+      p.size(window.irq.w, window.irq.h);
+      p.background(0,1);//backgorund black alpha 0
+      p.frameRate(24);
+      p.noLoop();
+      //change the size on resize
+      $(window).resize(function() {
+        window.irq.w = parseInt($('#canvas2').css('width'),10);
+        window.irq.h = parseInt($('#canvas2').css('height'),10);
+        p.size(window.irq.w, window.irq.h);
+      });
+      return initSound(p);
+    };
+  });
+
+});
+
 (function(exports) {
+
+  // App code
+  var displayMessage = null;
+  var masterContext = null;
+  var loadProxy = null;
+  var audioPath = "audio/";
+  var soundInstance = null;
+  var sources = [
+    {id:"FLAPPY", src:"flappy.ogg"},
+    {id:"PIGS6", src:"PIGS6.ogg"},
+    {id:"TICKLES", src:"TICKLES.ogg"}
+  ];
+  var clouds = [];
+  var sounds = [];
+  var config;
+
+  function start() {
+    displayMessage = document.getElementById("status");
+    if (!createjs.Sound.initializeDefaultPlugins()) {
+      document.getElementById("error").style.display = "block";
+      document.getElementById("content").style.display = "none";
+      return;
+    }
+    $(displayMessage).append("<p>loading audio</p>");
+    createjs.Sound.registerPlugins([createjs.WebAudioPlugin]);
+    createjs.Sound.alternateExtensions = ["mp3"];
+    var loadProxy = createjs.proxy(handleLoad);
+    createjs.Sound.addEventListener("fileload", loadProxy);
+    sounds = createjs.Sound.registerSounds(sources, audioPath);
+    console.log('Resgistered sounds', sounds);
+    masterContext = createjs.Sound.activePlugin.context;
+  }
+
+  function handleLoad(event) {
+    if(event.id ==="FLAPPY") {
+      var sound = createjs.Sound.createInstance(event.id);
+      $(displayMessage).append("<p>Created a sound using the file: " + event.id + "</p>");
+      createCloud(sound);
+    }
+  }
+
+  // make a grain cloud
+  function createCloud(sound) {
+    clouds[sound.id] = new Cloud(sound, masterContext);
+    clouds[sound.id].startGrains();
+  }
+
+  exports.SiS = {
+    start: start
+  };
 
   function grain(context, cloudGain, buffer, position, amp, pan, trans, length, attack, release) {
 
@@ -110,92 +199,4 @@ window.irq = window.irq || {};
     };
   }
 
-  // App code
-  var displayMessage = null;
-  var masterContext = null;
-  var loadProxy = null;
-  var audioPath = "audio/";
-  var soundInstance = null;
-  var sources = [
-    {id:"FLAPPY", src:"flappy.ogg"},
-    {id:"PIGS6", src:"PIGS6.ogg"},
-    {id:"TICKLES", src:"TICKLES.ogg"}
-  ];
-  var clouds = [];
-  var sounds = [];
-  var config;
-
-  function start() {
-    displayMessage = document.getElementById("status");
-    if (!createjs.Sound.initializeDefaultPlugins()) {
-      document.getElementById("error").style.display = "block";
-      document.getElementById("content").style.display = "none";
-      return;
-    }
-    $(displayMessage).append("<p>loading audio</p>");
-    createjs.Sound.registerPlugins([createjs.WebAudioPlugin]);
-    createjs.Sound.alternateExtensions = ["mp3"];
-    var loadProxy = createjs.proxy(handleLoad);
-    createjs.Sound.addEventListener("fileload", loadProxy);
-    sounds = createjs.Sound.registerSounds(sources, audioPath);
-    console.log('Resgistered sounds', sounds);
-    masterContext = createjs.Sound.activePlugin.context;
-  }
-
-  function handleLoad(event) {
-    if(event.id ==="FLAPPY") {
-      var sound = createjs.Sound.createInstance(event.id);
-      $(displayMessage).append("<p>Created a sound using the file: " + event.id + "</p>");
-      createCloud(sound);
-    }
-  }
-
-  // make a grain cloud
-  function createCloud(sound) {
-    clouds[sound.id] = new Cloud(sound, masterContext);
-    clouds[sound.id].startGrains();
-  }
-
-  exports.SiS = {
-    start: start
-  };
 }(window.irq));
-
-$( document ).ready(function() {
-
-  // kick off the cloud process
-  function initSound(p) {
-    irq.p = p;
-    var display;
-    display = $("#status");
-    function handleClick(event) {
-      display.off("click");
-      window.irq.SiS.start();
-    }
-    display.on("click", handleClick);
-  }
-
-  // set up processing first
-  // it is essentially the app UI
-  var canvas2 = document.getElementById('canvas2');
-  var processing = new Processing(canvas2,function(p) {
-    // shoving specifics about the sketch into global
-    window.irq.w = parseInt($('#canvas2').css('width'),10);
-    window.irq.h = parseInt($('#canvas2').css('height'),10);
-    p.setup = function() {
-      console.log('processing? ', p);
-      p.size(window.irq.w, window.irq.h);
-      p.background(0,1);//backgorund black alpha 0
-      p.frameRate(24);
-      p.noLoop();
-      //change the size on resize
-      $(window).resize(function() {
-        window.irq.w = parseInt($('#canvas2').css('width'),10);
-        window.irq.h = parseInt($('#canvas2').css('height'),10);
-        p.size(window.irq.w, window.irq.h);
-      });
-      return initSound(p);
-    };
-  });
-
-});
