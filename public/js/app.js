@@ -96,7 +96,7 @@ $( document ).ready(function() {
   function handleLoad(event) {
     if(event.id ==="TICKLES") {
       var sound = createjs.Sound.createInstance(event.id);
-      $(displayMessage).append("<p>Created a sound using the file: " + event.id + "</p>");
+      $(displayMessage).append('<p>Created a sound</p>');
       createCloud(sound);
     }
   }
