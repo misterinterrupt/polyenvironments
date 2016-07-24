@@ -2,32 +2,34 @@
 extends ./layout.jade
 block styles
   link(href="/css/soundinspace.css", rel="stylesheet")
+  
 block main
   div(class="container-fluid")
     div(class="row error")
 
-    div(class="row content")
+    div(id="", class="row content")
       div(class="col-sm-5 col-sm-offset-1")
-        h2 Sound In Space
+        h2 Sound in Space
         hr
+
       div(class="col-sm-6 error")
         p This app cannot be used on this device
 
-      div(class="col-sm-6 content")
-        h3 (instructions for whenever)
-        p these sounds change based on phone orientation. its pretty distracting to play with. 
+      div(id="instructions", class="col-sm-6 content")
+        h3 (instructions for exploration)
         p listen to this via headphones on your phone
         p first, turn down your phone volume
         p second, click below and then turn up the sound halfway
         p now put the phone in your pocket or just hold it out like a star trek phasor
         p move around, slow down and move subtly, flip the phone around and try again
 
-        div(id="status")
-          h3 Touch to Load
+      div(id="status")
+        h3 Touch to Load
+
 
     div(class="row content")
       div(class="col-sm-6 content")
-        canvas(id="canvas2")
+        canvas(id="control-pad-1", class="control-pad")
 
 block scripts
     script(src='/js/soundjs-0.6.2.min.js')

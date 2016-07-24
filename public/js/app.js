@@ -1,42 +1,44 @@
 window.irq = window.irq || {};
+window.irq.SiS = window.irq.SiS || {};
 
-$( document ).ready(function() {
+$(document).ready(function() {
 
   // kick off the cloud process
-  function initSound(p) {
-    window.irq.p = p;
-    var display;
-    display = $("#status");
-    function handleClick(event) {
-      display.off("click");
-      // HEY: start the app here
-      window.irq.SiS.start();
-    }
-    display.on("click", handleClick);
-  }
-
-  // set up processing first
-  // it is essentially the app UI
-  var canvas2 = document.getElementById('canvas2');
-  var processing = new Processing(canvas2,function(p) {
+  function initApp(p) {
     // shoving specifics about the sketch into global
-    window.irq.w = parseInt($('#canvas2').css('width'),10);
-    window.irq.h = parseInt($('#canvas2').css('height'),10);
+    window.irq.SiS.xyPad1 = {};
+    window.irq.SiS.xyPad1.w = parseInt($('#control-pad-1').css('width'),10);
+    window.irq.SiS.xyPad1.h = parseInt($('#control-pad-1').css('height'),10);
     p.setup = function() {
-      console.log('processing, anyone? ', p);
-      p.size(window.irq.w, window.irq.h);
-      p.background(0,1);//backgorund black alpha 0
+      p.size(window.irq.SiS.xyPad1.w, window.irq.SiS.xyPad1.h);
+      p.background(0,256);//background black alpha 1
       p.frameRate(24);
       p.noLoop();
       //change the size on resize
       $(window).resize(function() {
-        window.irq.w = parseInt($('#canvas2').css('width'),10);
-        window.irq.h = parseInt($('#canvas2').css('height'),10);
-        p.size(window.irq.w, window.irq.h);
+        window.irq.SiS.xyPad1.w = parseInt($('#control-pad-1').css('width'),10);
+        window.irq.SiS.xyPad1.h = parseInt($('#control-pad-1').css('height'),10);
+        p.size(window.irq.SiS.xyPad1.w, window.irq.SiS.xyPad1.h);
       });
-      return initSound(p);
     };
-  });
+    window.irq.SiS.p = p;
+    var $display, $instructions, $title;
+    $display = $("#status");
+    $instructions = $("#instructions");
+
+    function handleClick(event) {
+      $instructions.hide();
+      $display.off("click");
+      // HEY: start the app here
+      window.irq.SiS.start();
+    }
+    $display.on("click", handleClick);
+  }
+
+  // set up processing first
+  // it is essentially the app UI
+  var xyPad = document.getElementById('control-pad-1');
+  var processing = new Processing(xyPad, initApp);
 
 });
 
@@ -77,7 +79,7 @@ $( document ).ready(function() {
       // beta is the front-to-back tilt in degrees, where front is positive
       var tiltFB = eventData.beta;
       // alpha is the compass direction the device is facing in degrees
-      var pointing = eventData.alpha;
+      var pointing = eventData.webkitCompassHeading ? eventData.webkitCompassHeading : eventData.alpha;
       orientation.tiltLR = tiltLR;
       orientation.tiltFB = tiltFB;
       orientation.pointing = pointing; // null on laptops
@@ -96,7 +98,7 @@ $( document ).ready(function() {
   function handleLoad(event) {
     if(event.id ==="TICKLES") {
       var sound = createjs.Sound.createInstance(event.id);
-      $(displayMessage).append('<p>Created a sound</p>');
+      $(displayMessage).append('<p>You can turn up your volume now</p>');
       createCloud(sound);
     }
   }
@@ -107,10 +109,8 @@ $( document ).ready(function() {
     clouds[sound.id].startGrains();
   }
 
-  exports.SiS = {
-    start: start,
-    orientation: orientation
-  };
+  exports.start = start;
+  exports.orientation = orientation;
 
   function grain(context, cloudGain, buffer, position, amp, pan, trans, length, attack, release) {
 
@@ -156,20 +156,26 @@ $( document ).ready(function() {
     // times are ms or a function that returns ms
     var defaultCloudParams = {
       // speed factor with which grains are created
-      interval: 60,
+      interval: 180,
       // max grain polyphony for this cloud
-      density: 12,
+      density: 14,
+      // max amplitude of grains, adjust for amount of doubling
+      amp: 0.50,
       // random position amount
       jitter: 0.2,
       // random pan amount
       spread: 3.0,
       // length in s of each grain
-      grainLength: 0.5
+      grainLength: 3,
+      // start of area in sound usable for grain positions
+      startGrainWindow: 0.85,
+      // end of area in sound usable for grain positions
+      endGrainWindow: 0.90
     };
     // times are in seconds
     var defaultGrainParams = {
-      attack:  0.1,
-      release: 0.2,
+      attack:  0.5,
+      release: 0.5,
       pan: 0.0,
       trans: 1.0
     };
@@ -180,18 +186,30 @@ $( document ).ready(function() {
 
     // TODO: check for functions in params that can be dynamic or static
     function grainPosition(buffer) {
-      var position_ratio = irq.p.map(irq.SiS.orientation.pointing, 0.0, 360.0, 0.0, 0.999);
-      return buffer.duration * position_ratio;
+      // position is based on cloud's grain window
+      var positionRatio = irq.SiS.p.map(irq.SiS.orientation.pointing, 0.0, 360.0, 0.01, 0.99);
+      var windowRatio = cloudParams.endGrainWindow - cloudParams.startGrainWindow;
+      var windowSize = windowRatio * buffer.duration;
+      var windowStart = cloudParams.startGrainWindow * buffer.duration;
+      return windowStart + (windowSize * positionRatio);
     }
 
     function grainPan() {
       // grainParams.pan
-      return irq.p.map(irq.SiS.orientation.tiltLR, -180.0, 180.0, -10.0, 10.0);
+      return irq.SiS.p.map(irq.SiS.orientation.tiltLR, -180.0, 180.0, -10.0, 10.0);
     }
 
     function grainTrans() {
       // grainParams.trans
-      return irq.p.map(irq.SiS.orientation.tiltFB, -180.0, 180.0, 0.6, 1.6);
+      return irq.SiS.p.map(irq.SiS.orientation.tiltFB, -180.0, 180.0, 0.6, 1.6);
+    }
+
+    function grainLength() {
+      return cloudParams.grainLength * irq.SiS.p.map(irq.SiS.p.mouseY, irq.SiS.xyPad1.h, 0.0, 0.01, 1.0);
+    }
+
+    function grainInterval() {
+      return cloudParams.interval * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 0.5, 0.999);
     }
 
     // create grains
@@ -199,13 +217,13 @@ $( document ).ready(function() {
       var buffer = sound.playbackResource;
       var position = grainPosition(buffer);
       var pan = grainPan();
-      var amp = 0.9;
+      var amp = cloudParams.amp;
       var trans = grainTrans();
-      var length = cloudParams.grainLength;
+      var length = grainLength();
       var attack = grainParams.attack;
       var release = grainParams.release;
       var g = grain(masterContext, cloudGain, buffer, position, amp, pan, trans, length, attack, release);
-      sprayTimeout = setTimeout(makeGrain, cloudParams.interval);
+      sprayTimeout = setTimeout(makeGrain, grainInterval());
     }
 
     function startGrains() {
@@ -222,4 +240,4 @@ $( document ).ready(function() {
     };
   }
 
-}(window.irq));
+}(window.irq.SiS));
