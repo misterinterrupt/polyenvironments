@@ -1,47 +1,7 @@
 window.irq = window.irq || {};
 window.irq.SiS = window.irq.SiS || {};
 
-$(document).ready(function() {
-
-  // kick off the cloud process
-  function initApp(p) {
-    // shoving specifics about the sketch into global
-    window.irq.SiS.xyPad1 = {};
-    window.irq.SiS.xyPad1.w = parseInt($('#control-pad-1').css('width'),10);
-    window.irq.SiS.xyPad1.h = parseInt($('#control-pad-1').css('height'),10);
-    p.setup = function() {
-      p.size(window.irq.SiS.xyPad1.w, window.irq.SiS.xyPad1.h);
-      p.background(0,256);//background black alpha 1
-      p.frameRate(24);
-      p.noLoop();
-      //change the size on resize
-      $(window).resize(function() {
-        window.irq.SiS.xyPad1.w = parseInt($('#control-pad-1').css('width'),10);
-        window.irq.SiS.xyPad1.h = parseInt($('#control-pad-1').css('height'),10);
-        p.size(window.irq.SiS.xyPad1.w, window.irq.SiS.xyPad1.h);
-      });
-    };
-    window.irq.SiS.p = p;
-    var $display, $instructions, $title;
-    $display = $("#status");
-    $instructions = $("#instructions");
-
-    function handleClick(event) {
-      $instructions.hide();
-      $display.off("click");
-      // HEY: start the app here
-      window.irq.SiS.start();
-    }
-    $display.on("click", handleClick);
-  }
-
-  // set up processing first
-  // it is essentially the app UI
-  var xyPad = document.getElementById('control-pad-1');
-  var processing = new Processing(xyPad, initApp);
-
-});
-
+// the code that the app runs
 (function(exports) {
 
   // App code
@@ -49,20 +9,16 @@ $(document).ready(function() {
   var masterContext = null;
   var loadProxy = null;
   var audioPath = "audio/";
-  var soundInstance = null;
-  var sources = [
-    {id:"FLAPPY", src:"flappy.ogg"},
-    {id:"PIGS6", src:"PIGS6.ogg"},
-    {id:"TICKLES", src:"TICKLES.mp3"}
-  ];
-  var clouds = [];
-  var sounds = [];
+  // var soundInstance = null;
+  var clouds = {};
   var config;
   var orientation = {
     tiltLR: 0.0,
     tiltFB: 0.0,
     pointing: 0.0
   };
+  // var lastIdx = 0;
+  // var lastInterval;
 
   // kick off the control data setup and the creation of clouds
   function start() {
@@ -85,29 +41,111 @@ $(document).ready(function() {
       orientation.pointing = pointing; // null on laptops
     }, false);
 
-    $(displayMessage).append("<p>loading audio</p>");
+    $(displayMessage).html("<img src='/images/loader_10_trans.gif'/>");
     createjs.Sound.registerPlugins([createjs.WebAudioPlugin]);
     createjs.Sound.alternateExtensions = ["mp3"];
     var loadProxy = createjs.proxy(handleLoad);
     createjs.Sound.addEventListener("fileload", loadProxy);
-    sounds = createjs.Sound.registerSounds(sources, audioPath);
-    console.log('Resgistered sounds', sounds);
+
+    originSound = createjs.Sound.registerSound(
+      audioPath + irq.SiS.relativeZones[0].source.file,
+      irq.SiS.relativeZones[0].source.id,
+      irq.SiS.relativeZones[0].source.channels);
+    console.log('Registered origin sound', originSound);
+
+    // assign soundjs plugin context to masterContext for use by clouds & grains
     masterContext = createjs.Sound.activePlugin.context;
   }
 
+  // origin sound registered in start()
+  // origin sound load handled
+  // lastInterval set with transitionMonitor
+  // interval picks up positive transition condition
+  // clears lastInterval
+  // new sound registered
+  // load handled
+  // lastInterval set with transitionMonitor
+
   function handleLoad(event) {
-    if(event.id ==="TICKLES") {
-      var sound = createjs.Sound.createInstance(event.id);
-      $(displayMessage).append('<p>You can turn up your volume now</p>');
-      createCloud(sound);
+    var sound = createjs.Sound.createInstance(event.id);
+    $(displayMessage).html('<p>You can turn up your volume now</p>');
+    createCloud(sound, event.id);
+    // should continually pay attention
+    // handleLoad will be the 1st to trigger it
+    // (via the 1 time payattention func)
+    // then it becomes triggered by it
+    if(payAttention) payAttention();
+  }
+
+  // starts and stops the cloud for zones based on active status
+  function zoneActivityMonitor() {
+    window.irq.SiS.relativeZones.forEach(function(zone) {
+      if(zoneIsActive(zone.locationFromCenter)) {
+        // if this zone is active, turn on the zone
+        if(clouds[zone.source.id] && !clouds[zone.source.id].isPlaying()) {
+          // if the cloud exists, and is not playing start playing grains
+          clouds[zone.source.id].startGrains();
+        } else if(!clouds[zone.source.id]){
+          // if the cloud does not exist, register the sound
+          createjs.Sound
+            .registerSound(audioPath + zone.source.file,
+              zone.source.id,
+              zone.source.channels);
+          console.log('Registered a sound', zone.source.id);
+        }
+      } else {
+        // if this zone is not active, turn off the zone
+        if(clouds[zone.source.id] && clouds[zone.source.id].isplaying()) {
+          // if the cloud exists, and is playing, stop spraying grains
+          clouds[zone.source.id].stopGrains();
+        }
+      }
+    });
+    setTimeout(zoneActivityMonitor, 987);
+  }
+
+  //
+  // function transitionMonitor() {
+  //   var transitionTo = enteredNewZone();
+  //   if((transitionTo !== null) && (transitionTo >= 0)) {
+  //     clearInterval(irq.SiS.lastInterval);
+  //     var nextId = event.id;
+  //     var nextIdx = getZoneIdxById(nextId, irq.SiS.relativeZones);
+  //     clouds[nextIdx-1].stopGrains();
+  //     var soundSource = irq.SiS.relativeZones[nextIdx].source;
+  //     nextSound = createjs.Sound.registerSound(audioPath + soundSource.file, soundSource.id, soundSource.channels);
+  //     console.log('Registered next sound', nextSound);
+  //   }
+  // }
+
+  function getZoneIdxById(id, zones) {
+    var idx;
+    for(var i=0; i<zones.length; i++) {
+      if(zones[i].source.id === id) {
+        idx = i;
+      }
     }
+    return idx;
   }
 
   // make a grain cloud
-  function createCloud(sound) {
-    clouds[sound.id] = new Cloud(sound, masterContext);
-    clouds[sound.id].startGrains();
+  function createCloud(sound, id) {
+    clouds[id] = new Cloud(sound, masterContext);
+    clouds[id].startGrains();
   }
+
+  function zoneIsActive(locationFromCenter) {
+    return true;
+  }
+
+  function payAttention() {
+    // kick off zone activity monitor
+    if(payAttention) setTimeout(zoneActivityMonitor, 1000);
+    payAttention = false;
+  }
+  // function enteredNewZone() {
+  //   return 0;
+  // }
 
   exports.start = start;
   exports.orientation = orientation;
@@ -118,6 +156,7 @@ $(document).ready(function() {
     var source = context.createBufferSource();
     source.playbackRate.value = source.playbackRate.value * trans;
     source.buffer = buffer;
+    source.loop = true;
     var envelopeGain = context.createGain();
     var panner = context.createPanner();
     panner.panningModel = "equalpower";
@@ -145,32 +184,34 @@ $(document).ready(function() {
   // a cloud of grains
   function Cloud(sound, masterContext, cloudParams, grainParams) {
     console.log('new cloud');
+    var playing = false;
     // connect the cloud gain node to the context destination
     var cloudGain = masterContext.createGain();
     cloudGain.connect(masterContext.destination);
     cloudGain.gain.setValueAtTime(1.0, masterContext.currentTime);
     // timeout responsible for calling makeGrain continually
     var sprayTimeout;
-    var grainCount = 0;
 
     // times are ms or a function that returns ms
     var defaultCloudParams = {
       // speed factor with which grains are created
-      interval: 180,
-      // max grain polyphony for this cloud
+      interval: 100,
+      //
       density: 14,
+      // max grain polyphony for this cloud
+      grainCount: 6,
       // max amplitude of grains, adjust for amount of doubling
-      amp: 0.50,
+      amp: 0.80,
       // random position amount
       jitter: 0.2,
       // random pan amount
       spread: 3.0,
       // length in s of each grain
-      grainLength: 3,
+      grainLength: 1,
       // start of area in sound usable for grain positions
-      startGrainWindow: 0.85,
+      startGrainWindow: 0.01,
       // end of area in sound usable for grain positions
-      endGrainWindow: 0.90
+      endGrainWindow: 0.99
     };
     // times are in seconds
     var defaultGrainParams = {
@@ -205,11 +246,11 @@ $(document).ready(function() {
     }
 
     function grainLength() {
-      return cloudParams.grainLength * irq.SiS.p.map(irq.SiS.p.mouseY, irq.SiS.xyPad1.h, 0.0, 0.01, 1.0);
+      return cloudParams.grainLength * irq.SiS.p.map(irq.SiS.p.mouseY, irq.SiS.xyPad1.h, 0.0, 0.1, 0.5);
     }
 
     function grainInterval() {
-      return cloudParams.interval * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 0.5, 0.999);
+      return cloudParams.interval * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 0.6, 1.0);
     }
 
     // create grains
@@ -228,15 +269,22 @@ $(document).ready(function() {
 
     function startGrains() {
       makeGrain();
+      playing = true;
     }
 
     function stopGrains() {
       clearTimeout(sprayTimeout);
+      playing = false;
+    }
+
+    function isPlaying() {
+      return !!playing;
     }
 
     return {
       startGrains: startGrains,
-      stopGrains: stopGrains
+      stopGrains: stopGrains,
+      isPlaying: isPlaying
     };
   }
 

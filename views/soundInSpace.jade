@@ -2,36 +2,36 @@
 extends ./layout.jade
 block styles
   link(href="/css/soundinspace.css", rel="stylesheet")
-  
+
 block main
   div(class="container-fluid")
-    div(class="row error")
 
-    div(id="", class="row content")
+    div(id="", class="row text-zone")
       div(class="col-sm-5 col-sm-offset-1")
         h2 Sound in Space
-        hr
 
       div(class="col-sm-6 error")
         p This app cannot be used on this device
 
       div(id="instructions", class="col-sm-6 content")
-        h3 (instructions for exploration)
-        p listen to this via headphones on your phone
-        p first, turn down your phone volume
-        p second, click below and then turn up the sound halfway
-        p now put the phone in your pocket or just hold it out like a star trek phasor
-        p move around, slow down and move subtly, flip the phone around and try again
+        h4 (instructions for sound navigation w/ phone)
+        ul
+          li turn down your phone volume and click below.
+          li when it says to, turn up the sound slowly.
+          li please use headphones, find a comfortable position for holding your phone.
+          li listen deeply as you walk away from where you are. take extra care to locate surprises.
+          li make subtle movements, slow down, explore a different place, ignore the phone, but keep the screen on.
 
       div(id="status")
         h3 Touch to Load
 
-
-    div(class="row content")
+    div(class="row pad-zone")
       div(class="col-sm-6 content")
         canvas(id="control-pad-1", class="control-pad")
 
 block scripts
     script(src='/js/soundjs-0.6.2.min.js')
     script(src='/js/processing-1.4.1.js')
-    script(src='/js/app.js')
+    script(src='/js/SiS-zones.js')
+    script(src='/js/SiS-app.js')
+    script(src='/js/SiS-init.js')

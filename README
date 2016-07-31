@@ -24,20 +24,37 @@ Cloud
     - release -> final volume ramp
     - trans -> grain pitch
 
+Zone
+- cloud of grains is toggled via user gps relative to zone center gps
+  - cloud params passed in
+  - center: gps center of circle, relative to user-initialized map 'center'
+  - radius: radius of circle boundary
+  - distance: meters from user-initialized map 'center'
+  - heading: direction to center from user-initialized map 'center'
+  - occupied: boolean usable for UI interests (show title of all occupied zones)
+  - registers gps event handler
+    - new gps coords checks if it should start/stop cloud's grains
+  - manages cloud play state
+    - playing (unplayable)
+    - stopped (ready)
 
 TODO:
 
     Control Signals
-      % of the screen is an x/y touch pad
-      alpha, beta, gamma of accelerometer to grain length, pan, grain density
+      √ % of the screen is an x/y touch pad
+      √ alpha, beta, gamma of accelerometer to grain length, pan, grain density
       gps long/lat changes file position
-
-
-    Area object
-      Boolean: playing
-      Boolean: occupied - user gps is within area bounds
-      Object: latLongBounds - boundary of area with 4 lat/long props
-      Object: config for how clouds start and stop grains
+      proximity to center of zone toggles zone's cloud
 
     Audio
-      define various cloud configs
+      create or choose sounds for each zone
+      define various cloud configs for each zone
+
+
+
+one sound - gps position changes grain window
+
+
+
+
+sound for each
