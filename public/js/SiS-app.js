@@ -51,6 +51,8 @@ window.irq.SiS = window.irq.SiS || {};
       audioPath + irq.SiS.relativeZones[0].source.file,
       irq.SiS.relativeZones[0].source.id,
       irq.SiS.relativeZones[0].source.channels);
+    irq.SiS.registeredSounds = {};
+    irq.SiS.registeredSounds[irq.SiS.relativeZones[0].source.id] = true;
     console.log('Registered origin sound', originSound);
 
     // assign soundjs plugin context to masterContext for use by clouds & grains
@@ -85,8 +87,9 @@ window.irq.SiS = window.irq.SiS || {};
         if(clouds[zone.source.id] && !clouds[zone.source.id].isPlaying()) {
           // if the cloud exists, and is not playing start playing grains
           clouds[zone.source.id].startGrains();
-        } else if(!clouds[zone.source.id]){
+        } else if(!clouds[zone.source.id] && !irq.SiS.registeredSounds[zone.source.id]) {
           // if the cloud does not exist, register the sound
+          irq.SiS.registeredSounds[zone.source.id] = true;
           createjs.Sound
             .registerSound(audioPath + zone.source.file,
               zone.source.id,
@@ -205,7 +208,7 @@ window.irq.SiS = window.irq.SiS || {};
       // max amplitude of grains, adjust for amount of doubling
       amp: 0.40,
       // random position amount
-      jitter: 0.25,
+      jitter: 0.12,
       // random pan amount
       spread: 3.0,
       // length in s of each grain
@@ -230,10 +233,11 @@ window.irq.SiS = window.irq.SiS || {};
     // TODO: check for functions in params that can be dynamic or static
     function grainPosition(buffer) {
       // position is based on cloud's grain window
+      // var rnd = Math.floor(Math.random() + cloudParams.jitter);
       var positionRatio = irq.SiS.p.map(irq.SiS.orientation.pointing, 0.0, 360.0, 0.01, 0.99);
       var windowRatio = cloudParams.endGrainWindow - cloudParams.startGrainWindow;
       var windowSize = windowRatio * buffer.duration;
-      var windowStart = cloudParams.startGrainWindow * buffer.duration;
+      var windowStart = cloudParams.startGrainWindow * buffer.duration;// + rnd;
       return windowStart + (windowSize * positionRatio);
     }
 
@@ -252,7 +256,7 @@ window.irq.SiS = window.irq.SiS || {};
     }
 
     function cloudDensity() {
-      return cloudParams.density * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 0.8, 2.0);
+      return cloudParams.density * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 1.0, 2.0);
     }
 
     function msFromContextTime(time) {
