@@ -68,7 +68,7 @@ window.irq.SiS = window.irq.SiS || {};
 
   function handleLoad(event) {
     var sound = createjs.Sound.createInstance(event.id);
-    $(displayMessage).html('<p>You can turn up your volume now</p>');
+    $(displayMessage).html('<p>adjust your volume to a comfortable level</p>');
     createCloud(sound, event.id);
     // should continually pay attention
     // handleLoad will be the 1st to trigger it
@@ -150,13 +150,13 @@ window.irq.SiS = window.irq.SiS || {};
   exports.start = start;
   exports.orientation = orientation;
 
-  function grain(context, cloudGain, buffer, position, amp, pan, trans, length, attack, release) {
+  function grain(context, cloudGain, buffer, start, position, amp, pan, trans, length, attack, release) {
 
-    var now = context.currentTime; // update the time value
+
     var source = context.createBufferSource();
     source.playbackRate.value = source.playbackRate.value * trans;
     source.buffer = buffer;
-    source.loop = true;
+    // source.loop = true;
     var envelopeGain = context.createGain();
     var panner = context.createPanner();
     panner.panningModel = "equalpower";
@@ -165,25 +165,27 @@ window.irq.SiS = window.irq.SiS || {};
     source.connect(panner);
     panner.connect(envelopeGain);
     envelopeGain.connect(cloudGain);
-    source.start(now, position, length); // parameters (when,offset,duration)
-    envelopeGain.gain.setValueAtTime(0.0, now);
-    envelopeGain.gain.linearRampToValueAtTime(amp, now + attack);
-    envelopeGain.gain.linearRampToValueAtTime(0, (now + length) - release );
+    source.start(start, position, length); // parameters (when,offset,duration)
+    envelopeGain.gain.setValueAtTime(0.0, context.currentTime);
+    envelopeGain.gain.setValueAtTime(0.0, start);
+    envelopeGain.gain.linearRampToValueAtTime(amp, start + attack);
+    envelopeGain.gain.linearRampToValueAtTime(0, (start + length) - release);
 
-    //garbagio collectionism
-    var endTimes = now + length + 0.1;
-    source.stop(endTimes);
-    var ttl = length * 1000 + 200;
-    setTimeout(function() {
-      envelopeGain.disconnect();
-      panner.disconnect();
-      source.disconnect();
-    }, ttl);
+    // //garbagio collectionism
+    // var endTimes = start + length + 0.1;
+    // source.stop(endTimes);
+    // var ttl = length * 1000 + 200;
+    // setTimeout(function() {
+    //   envelopeGain.disconnect();
+    //   panner.disconnect();
+    //   source.disconnect();
+    // }, ttl);
   }
 
   // a cloud of grains
   function Cloud(sound, masterContext, cloudParams, grainParams) {
     console.log('new cloud');
+    var startTime = masterContext.currentTime; // update the time value
     var playing = false;
     // connect the cloud gain node to the context destination
     var cloudGain = masterContext.createGain();
@@ -195,15 +197,15 @@ window.irq.SiS = window.irq.SiS || {};
     // times are ms or a function that returns ms
     var defaultCloudParams = {
       // speed factor with which grains are created
-      interval: 100,
-      //
-      density: 14,
+      interval: 1000,
+      // ms grain spacing
+      density: 100,
       // max grain polyphony for this cloud
-      grainCount: 6,
+      // grainCount: 6,
       // max amplitude of grains, adjust for amount of doubling
-      amp: 0.80,
+      amp: 0.40,
       // random position amount
-      jitter: 0.2,
+      jitter: 0.25,
       // random pan amount
       spread: 3.0,
       // length in s of each grain
@@ -246,15 +248,27 @@ window.irq.SiS = window.irq.SiS || {};
     }
 
     function grainLength() {
-      return cloudParams.grainLength * irq.SiS.p.map(irq.SiS.p.mouseY, irq.SiS.xyPad1.h, 0.0, 0.1, 0.5);
+      return cloudParams.grainLength * irq.SiS.p.map(irq.SiS.p.mouseY, irq.SiS.xyPad1.h, 0.0, 0.1, 1.0);
     }
 
-    function grainInterval() {
-      return cloudParams.interval * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 0.6, 1.0);
+    function cloudDensity() {
+      return cloudParams.density * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 0.8, 2.0);
+    }
+
+    function msFromContextTime(time) {
+      return parseInt( (time % 1) * 1000 + (parseInt(time) * 1000) );
     }
 
     // create grains
     function makeGrain() {
+      var now = masterContext.currentTime;
+      var now_ms = msFromContextTime(now);
+      var startTime_ms = msFromContextTime(startTime);
+      var tickLength = cloudParams.interval * 2;
+      var timeout = cloudParams.interval;
+      var timeToFill = grainTimeToFill(now_ms, startTime_ms, tickLength, timeout);
+      var offsetTime = timeToFill/cloudDensity();
+
       var buffer = sound.playbackResource;
       var position = grainPosition(buffer);
       var pan = grainPan();
@@ -263,8 +277,26 @@ window.irq.SiS = window.irq.SiS || {};
       var length = grainLength();
       var attack = grainParams.attack;
       var release = grainParams.release;
-      var g = grain(masterContext, cloudGain, buffer, position, amp, pan, trans, length, attack, release);
-      sprayTimeout = setTimeout(makeGrain, grainInterval());
+
+      for (var i = 0; i < offsetTime; i++) {
+        var offsetStart = now_ms + (cloudDensity() * i);
+        var rnd = Math.floor(Math.random() + cloudParams.jitter);
+        offsetStart += rnd * cloudDensity();
+        grain(masterContext, cloudGain, buffer, offsetStart/1000, position, amp, pan, trans, length, attack, release);
+      }
+      sprayTimeout = setTimeout(makeGrain, timeout);
+    }
+
+    function grainTimeToFill(now, startTime, tickLength, timeout) {
+      var timeElapsedSinceStart = now - startTime;
+      var timePastLastTick = timeElapsedSinceStart % tickLength; // amount of time past last absolute tick
+      var lastTick = now - timePastLastTick;
+      var twoTicksFromNow = lastTick + (tickLength * 2);
+      if(now < twoTicksFromNow/2) return (tickLength * 2); // current and the next tick of time have been filled
+      var timeToSequence = timePastLastTick + (tickLength * 2); // amount of time before two ticks after last tick
+      // we should have one tick of time to fill, unless some unforseen skip..
+      // assert.true(timeToSequence === twoTicksFromNow - latestSequencedEventTime);
+      return timeToSequence;
     }
 
     function startGrains() {
