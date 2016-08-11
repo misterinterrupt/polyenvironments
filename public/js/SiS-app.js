@@ -17,8 +17,6 @@ window.irq.SiS = window.irq.SiS || {};
     tiltFB: 0.0,
     pointing: 0.0
   };
-  // var lastIdx = 0;
-  // var lastInterval;
 
   // kick off the control data setup and the creation of clouds
   function start() {
@@ -107,20 +105,6 @@ window.irq.SiS = window.irq.SiS || {};
     setTimeout(zoneActivityMonitor, 987);
   }
 
-  //
-  // function transitionMonitor() {
-  //   var transitionTo = enteredNewZone();
-  //   if((transitionTo !== null) && (transitionTo >= 0)) {
-  //     clearInterval(irq.SiS.lastInterval);
-  //     var nextId = event.id;
-  //     var nextIdx = getZoneIdxById(nextId, irq.SiS.relativeZones);
-  //     clouds[nextIdx-1].stopGrains();
-  //     var soundSource = irq.SiS.relativeZones[nextIdx].source;
-  //     nextSound = createjs.Sound.registerSound(audioPath + soundSource.file, soundSource.id, soundSource.channels);
-  //     console.log('Registered next sound', nextSound);
-  //   }
-  // }
-
   function getZoneIdxById(id, zones) {
     var idx;
     for(var i=0; i<zones.length; i++) {
@@ -133,7 +117,9 @@ window.irq.SiS = window.irq.SiS || {};
 
   // make a grain cloud
   function createCloud(sound, id) {
-    clouds[id] = new Cloud(sound, masterContext);
+    var zones = window.irq.SiS.relativeZones;
+    var idx = getZoneIdxById(id, zones);
+    clouds[id] = new Cloud(sound, masterContext, zones[idx].cloudParams, zones[idx].grainParams);
     clouds[id].startGrains();
   }
 
@@ -146,9 +132,6 @@ window.irq.SiS = window.irq.SiS || {};
     if(payAttention) setTimeout(zoneActivityMonitor, 1000);
     payAttention = false;
   }
-  // function enteredNewZone() {
-  //   return 0;
-  // }
 
   exports.start = start;
   exports.orientation = orientation;
@@ -196,27 +179,19 @@ window.irq.SiS = window.irq.SiS || {};
     cloudGain.gain.setValueAtTime(1.0, masterContext.currentTime);
     // timeout responsible for calling makeGrain continually
     var sprayTimeout;
+    var latestSequencedEventTime = 0;
 
     // times are ms or a function that returns ms
     var defaultCloudParams = {
-      // speed factor with which grains are created
-      interval: 1000,
-      // ms grain spacing
-      density: 100,
-      // max grain polyphony for this cloud
-      // grainCount: 6,
-      // max amplitude of grains, adjust for amount of doubling
-      amp: 0.40,
-      // random position amount
-      jitter: 0.12,
-      // random pan amount
-      spread: 3.0,
-      // length in s of each grain
-      grainLength: 1,
-      // start of area in sound usable for grain positions
-      startGrainWindow: 0.01,
-      // end of area in sound usable for grain positions
-      endGrainWindow: 0.99
+      interval: 500, // speed factor with which grains are created
+      density: 100, // ms grain spacing
+      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
+      jitter: 0.12, // random position/spacing amount
+      spread: 3.0, // random pan amount
+      grainLength: 1.0, // length in s of each grain
+      grainCount: 4, // max grain polyphony for this cloud
+      startGrainWindow: 0.0, // start of area in sound usable for grain positions
+      endGrainWindow: 1.0, // end of area in sound usable for grain positions
     };
     // times are in seconds
     var defaultGrainParams = {
@@ -226,9 +201,8 @@ window.irq.SiS = window.irq.SiS || {};
       trans: 1.0
     };
 
-    // TODO: take params from args
-    cloudParams = defaultCloudParams;
-    grainParams = defaultGrainParams;
+    cloudParams = _.extend(defaultCloudParams, cloudParams);
+    grainParams = _.extend(defaultGrainParams, grainParams);
 
     // TODO: check for functions in params that can be dynamic or static
     function grainPosition(buffer) {
@@ -243,7 +217,7 @@ window.irq.SiS = window.irq.SiS || {};
 
     function grainPan() {
       // grainParams.pan
-      return irq.SiS.p.map(irq.SiS.orientation.tiltLR, -180.0, 180.0, -10.0, 10.0);
+      return irq.SiS.p.map(irq.SiS.orientation.tiltLR, -120.0, 120.0, -10.0, 10.0);
     }
 
     function grainTrans() {
@@ -252,11 +226,17 @@ window.irq.SiS = window.irq.SiS || {};
     }
 
     function grainLength() {
-      return cloudParams.grainLength * irq.SiS.p.map(irq.SiS.p.mouseY, irq.SiS.xyPad1.h, 0.0, 0.1, 1.0);
+      if(window.irq.SiS.xyPad1.enabled)  {
+        return cloudParams.grainLength * irq.SiS.p.map(irq.SiS.p.mouseY, irq.SiS.xyPad1.h, 0.0, 0.1, 1.0);
+      }
+      return cloudParams.grainLength;
     }
 
     function cloudDensity() {
-      return cloudParams.density * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 1.0, 2.0);
+      if(window.irq.SiS.xyPad1.enabled) {
+        return cloudParams.density * irq.SiS.p.map(irq.SiS.p.mouseX, 0.01, irq.SiS.xyPad1.w, 1.0, 2.0);
+      }
+      return cloudParams.density;
     }
 
     function msFromContextTime(time) {
@@ -270,9 +250,8 @@ window.irq.SiS = window.irq.SiS || {};
       var startTime_ms = msFromContextTime(startTime);
       var tickLength = cloudParams.interval * 2;
       var timeout = cloudParams.interval;
-      var timeToFill = grainTimeToFill(now_ms, startTime_ms, tickLength, timeout);
-      var offsetTime = timeToFill/cloudDensity();
-
+      var timesToSequence = grainTimesToSequence(now_ms, startTime_ms, tickLength, timeout, cloudDensity());
+      latestSequencedEventTime = timesToSequence[timesToSequence.length];
       var buffer = sound.playbackResource;
       var position = grainPosition(buffer);
       var pan = grainPan();
@@ -282,25 +261,31 @@ window.irq.SiS = window.irq.SiS || {};
       var attack = grainParams.attack;
       var release = grainParams.release;
 
-      for (var i = 0; i < offsetTime; i++) {
-        var offsetStart = now_ms + (cloudDensity() * i);
+      for (var i = 0; i < timesToSequence.length; i++) {
         var rnd = Math.floor(Math.random() + cloudParams.jitter);
-        offsetStart += rnd * cloudDensity();
-        grain(masterContext, cloudGain, buffer, offsetStart/1000, position, amp, pan, trans, length, attack, release);
+        var positionJitter = rnd * cloudDensity();
+        var offsetStartSeconds = (timesToSequence[i] + positionJitter) / 1000;
+        grain(masterContext, cloudGain, buffer, offsetStartSeconds, position, amp, pan, trans, length, attack, release);
       }
       sprayTimeout = setTimeout(makeGrain, timeout);
     }
 
-    function grainTimeToFill(now, startTime, tickLength, timeout) {
+    function grainTimesToSequence(now, startTime, tickLength, timeout, density) {
+      console.log("calculating new grains");
       var timeElapsedSinceStart = now - startTime;
       var timePastLastTick = timeElapsedSinceStart % tickLength; // amount of time past last absolute tick
       var lastTick = now - timePastLastTick;
-      var twoTicksFromNow = lastTick + (tickLength * 2);
-      if(now < twoTicksFromNow/2) return (tickLength * 2); // current and the next tick of time have been filled
-      var timeToSequence = timePastLastTick + (tickLength * 2); // amount of time before two ticks after last tick
+      var twoTicksAfterNow = lastTick + (tickLength * 2);
+      var firstTick = latestSequencedEventTime === 0;
+      var previousToPresequenceThreshold = (now < twoTicksAfterNow/2);
+      if(!firstTick && previousToPresequenceThreshold) return []; // current and the next tick of time have been filled
       // we should have one tick of time to fill, unless some unforseen skip..
-      // assert.true(timeToSequence === twoTicksFromNow - latestSequencedEventTime);
-      return timeToSequence;
+      var offsetTime = density;
+      var timesToSequence = [];
+      for(var i=0; i<tickLength/offsetTime; i++) {
+        timesToSequence.push(lastTick + tickLength + (offsetTime * i));
+      }
+      return timesToSequence;
     }
 
     function startGrains() {
