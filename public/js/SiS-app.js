@@ -246,7 +246,7 @@ window.irq.SiS = window.irq.SiS || {};
 
     function grainPan() {
       // grainParams.pan
-      return irq.SiS.p.map(irq.SiS.orientation.tiltLR, -120.0, 120.0, -10.0, 10.0);
+      return irq.SiS.p.map(irq.SiS.orientation.tiltLR, -90.0, 90.0, -10.0, 10.0);
     }
 
     function grainTrans() {

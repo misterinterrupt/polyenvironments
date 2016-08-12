@@ -379,4 +379,130 @@ window.irq.SiS.relativeZones = [
       release: 0.05
     }
   },
+  {
+    name: 'e',
+    area: 'concourse 9',
+    source: {
+      id:"R09_0015",
+      file:"R09_0015.mp3",
+      channels: 10
+    },
+    cloudParams: {
+      interval: 240, // speed factor with which grains are scheduled
+      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
+      jitter: 0.14, // random position/spacing amount
+      spread: 3.0, // random pan amount
+      grainLength: 1.0, // length in s of each grain
+    },
+    grainParams: {
+      attack: 0.05,
+      release: 0.05
+    }
+  },
+  {
+    name: 'e',
+    area: 'concourse 9',
+    source: {
+      id:"R09_0016",
+      file:"R09_0016.mp3",
+      channels: 10
+    },
+    cloudParams: {
+      interval: 240, // speed factor with which grains are scheduled
+      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
+      jitter: 0.14, // random position/spacing amount
+      spread: 3.0, // random pan amount
+      grainLength: 1.0, // length in s of each grain
+    },
+    grainParams: {
+      attack: 0.05,
+      release: 0.05
+    }
+  },
+  {
+    name: 'e',
+    area: 'concourse 9',
+    source: {
+      id:"R09_0017",
+      file:"R09_0017.mp3",
+      channels: 10
+    },
+    cloudParams: {
+      interval: 240, // speed factor with which grains are scheduled
+      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
+      jitter: 0.14, // random position/spacing amount
+      spread: 3.0, // random pan amount
+      grainLength: 1.0, // length in s of each grain
+    },
+    grainParams: {
+      attack: 0.05,
+      release: 0.05
+    }
+  },
+  {
+    name: 'e',
+    area: 'concourse 9',
+    source: {
+      id:"R09_0018",
+      file:"R09_0018.mp3",
+      channels: 10
+    },
+    cloudParams: {
+      interval: 240, // speed factor with which grains are scheduled
+      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
+      jitter: 0.14, // random position/spacing amount
+      spread: 3.0, // random pan amount
+      grainLength: 1.0, // length in s of each grain
+    },
+    grainParams: {
+      attack: 0.05,
+      release: 0.05
+    }
+  },
+  {
+    name: 'e',
+    area: 'concourse 9',
+    source: {
+      id:"R09_0019",
+      file:"R09_0019.mp3",
+      channels: 10
+    },
+    cloudParams: {
+      interval: 240, // speed factor with which grains are scheduled
+      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
+      jitter: 0.14, // random position/spacing amount
+      spread: 3.0, // random pan amount
+      grainLength: 1.0, // length in s of each grain
+    },
+    grainParams: {
+      attack: 0.05,
+      release: 0.05
+    }
+  },
+  {
+    name: 'e',
+    area: 'concourse 9',
+    source: {
+      id:"R09_0020",
+      file:"R09_0020.mp3",
+      channels: 10
+    },
+    cloudParams: {
+      interval: 240, // speed factor with which grains are scheduled
+      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
+      jitter: 0.14, // random position/spacing amount
+      spread: 3.0, // random pan amount
+      grainLength: 1.0, // length in s of each grain
+    },
+    grainParams: {
+      attack: 0.05,
+      release: 0.05
+    }
+  },
 ];
