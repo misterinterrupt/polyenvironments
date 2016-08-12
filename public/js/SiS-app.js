@@ -64,12 +64,12 @@ window.irq.SiS = window.irq.SiS || {};
 
   // origin sound registered in start()
   // origin sound load handled
-  // lastInterval set with transitionMonitor
+  // lastInterval set with zoneActivityMonitor
   // interval picks up positive transition condition
   // clears lastInterval
   // new sound registered
   // load handled
-  // lastInterval set with transitionMonitor
+  // lastInterval set with zoneActivityMonitor
 
   function handleLoad(event) {
     var sound = createjs.Sound.createInstance(event.id);
@@ -85,7 +85,7 @@ window.irq.SiS = window.irq.SiS || {};
   // starts and stops the cloud for zones based on active status
   function zoneActivityMonitor() {
     var now = masterContext.currentTime;
-    var newSoundLength = (3*6) + (Math.floor(Math.random() * (5*6)));
+    var newSoundLength = (3*60) + (Math.floor(Math.random() * (5*60)));
     var firstTime = false;
     if(lastSoundChangeTime === null) {
       lastSoundChangeTime = now;
@@ -307,9 +307,11 @@ window.irq.SiS = window.irq.SiS || {};
       var timePastLastTick = timeElapsedSinceStart % tickLength; // amount of time past last absolute tick
       var lastTick = now - timePastLastTick;
       var twoTicksAfterNow = lastTick + (tickLength * 2);
-      var firstTick = latestSequencedEventTime === 0;
+      var nextTick = lastTick + tickLength;
+      var firstTick = (latestSequencedEventTime === 0);
       var previousToPreSequenceThreshold = (now < twoTicksAfterNow/2);
-      if(!firstTick && previousToPreSequenceThreshold) return []; // current and the next tick of time have been filled
+      var alreadyFilled = (now > lastTick) && (now > latestSequencedEventTime) && (now < nextTick);
+      if(!firstTick && alreadyFilled) return []; // current and the next tick of time have been filled
       // we should have one tick of time to fill, unless some unforseen skip..
       var offsetTime = density;
       var timesToSequence = [];
