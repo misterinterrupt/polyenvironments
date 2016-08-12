@@ -7,6 +7,9 @@ window.irq.SiS = window.irq.SiS || {};
   // App code
   var displayMessage = null;
   var masterContext = null;
+  var appStartTime = null;
+  var lastSoundChangeTime = null;
+  var lastSoundChangeLength = null;
   var loadProxy = null;
   var audioPath = "audio/";
   // var soundInstance = null;
@@ -45,16 +48,18 @@ window.irq.SiS = window.irq.SiS || {};
     var loadProxy = createjs.proxy(handleLoad);
     createjs.Sound.addEventListener("fileload", loadProxy);
 
+    var firstIdx = 2;
     originSound = createjs.Sound.registerSound(
-      audioPath + irq.SiS.relativeZones[0].source.file,
-      irq.SiS.relativeZones[0].source.id,
-      irq.SiS.relativeZones[0].source.channels);
+      audioPath + irq.SiS.relativeZones[firstIdx].source.file,
+      irq.SiS.relativeZones[firstIdx].source.id,
+      irq.SiS.relativeZones[firstIdx].source.channels);
     irq.SiS.registeredSounds = {};
-    irq.SiS.registeredSounds[irq.SiS.relativeZones[0].source.id] = true;
+    irq.SiS.registeredSounds[irq.SiS.relativeZones[3].source.id] = true;
     console.log('Registered origin sound', originSound);
 
     // assign soundjs plugin context to masterContext for use by clouds & grains
     masterContext = createjs.Sound.activePlugin.context;
+    appStartTime = masterContext.currentTime;
   }
 
   // origin sound registered in start()
@@ -79,30 +84,52 @@ window.irq.SiS = window.irq.SiS || {};
 
   // starts and stops the cloud for zones based on active status
   function zoneActivityMonitor() {
-    window.irq.SiS.relativeZones.forEach(function(zone) {
-      if(zoneIsActive(zone.locationFromCenter)) {
-        // if this zone is active, turn on the zone
-        if(clouds[zone.source.id] && !clouds[zone.source.id].isPlaying()) {
-          // if the cloud exists, and is not playing start playing grains
-          clouds[zone.source.id].startGrains();
-        } else if(!clouds[zone.source.id] && !irq.SiS.registeredSounds[zone.source.id]) {
-          // if the cloud does not exist, register the sound
-          irq.SiS.registeredSounds[zone.source.id] = true;
-          createjs.Sound
-            .registerSound(audioPath + zone.source.file,
-              zone.source.id,
-              zone.source.channels);
-          console.log('Registered a sound', zone.source.id);
+    var now = masterContext.currentTime;
+    var newSoundLength = (3*6) + (Math.floor(Math.random() * (5*6)));
+    var firstTime = false;
+    if(lastSoundChangeTime === null) {
+      lastSoundChangeTime = now;
+      firstTime = true;
+    }
+    if(lastSoundChangeLength === null) {
+      lastSoundChangeLength = newSoundLength;
+    }
+    var nextTimeToChange = lastSoundChangeTime + lastSoundChangeLength;
+    var changeSound = firstTime || (now > nextTimeToChange);
+    if(changeSound) {
+      lastSoundChangeLength = newSoundLength;
+      lastSoundChangeTime = nextTimeToChange;
+      console.log('changing sound to '+ newSoundLength + 's');
+    }
+    window.irq.SiS.updateInhabitedAreas(changeSound, function() {
+
+      // set the inhabitedAreas object based on the currentPosition
+      window.irq.SiS.relativeZones.forEach(function(zone) {
+
+        if(zoneIsActive(zone)) {
+          // if this zone is active, turn on the zone
+          if(clouds[zone.source.id] && !clouds[zone.source.id].isPlaying()) {
+            // if the cloud exists, and is not playing start playing grains
+            clouds[zone.source.id].startGrains();
+          } else if(!clouds[zone.source.id] && !irq.SiS.registeredSounds[zone.source.id]) {
+            // if the cloud does not exist, register the sound
+            irq.SiS.registeredSounds[zone.source.id] = true;
+            createjs.Sound
+              .registerSound(audioPath + zone.source.file,
+                zone.source.id,
+                zone.source.channels);
+            console.log('Registered a sound', zone.source.id);
+          }
+        } else {
+          // if this zone is not active, turn off the zone
+          if(clouds[zone.source.id] && clouds[zone.source.id].isPlaying()) {
+            // if the cloud exists, and is playing, stop spraying grains
+            clouds[zone.source.id].stopGrains();
+          }
         }
-      } else {
-        // if this zone is not active, turn off the zone
-        if(clouds[zone.source.id] && clouds[zone.source.id].isplaying()) {
-          // if the cloud exists, and is playing, stop spraying grains
-          clouds[zone.source.id].stopGrains();
-        }
-      }
-    });
-    setTimeout(zoneActivityMonitor, 987);
+      });
+      setTimeout(zoneActivityMonitor, 987);
+    }); // end updateInhabitedZones
   }
 
   function getZoneIdxById(id, zones) {
@@ -123,8 +150,10 @@ window.irq.SiS = window.irq.SiS || {};
     clouds[id].startGrains();
   }
 
-  function zoneIsActive(locationFromCenter) {
-    return true;
+  function zoneIsActive(zone) {
+    // return _.has(window.irq.SiS.inhabitedAreas, zone.area);
+    if(!window.irq.SiS.inhabitedAreas.length || !window.irq.SiS.inhabitedAreas[0]) return false;
+    return window.irq.SiS.inhabitedAreas[0].source.id === zone.source.id;
   }
 
   function payAttention() {

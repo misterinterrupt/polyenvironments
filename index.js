@@ -1,6 +1,6 @@
 var _ = require('underscore');
 var express = require('express');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 var app = express();
 var defaultPort = process.env.PORT || 80;
 

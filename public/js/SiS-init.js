@@ -54,8 +54,14 @@ $(document).ready(function() {
     };
     // put processing on the global NS
     window.irq.SiS.p = p;
-    var $display, $instructions, $title;
+    window.irq.SiS.areaIsActive = false;
+    var $display, $instructions, $title, $nextBtn;
     $display = $("#status");
+    $nextBtn = $('#next').on("click", function(){
+      window.irq.SiS.areaIsActive = !window.irq.SiS.areaIsActive;
+      console.log(window.irq.SiS.areaIsActive);
+    });
+
     // $instructions = $("#instructions");
 
     function handleClick(event) {
@@ -76,9 +82,49 @@ $(document).ready(function() {
   }
 
   // set up gps origin  // geolib seems to conventionally key it as lon/lat google locations are lat/lon
-  window.irq.SiS.zoneOrigin = { latitude:37.7709419, longitude: -122.4695236} ; // de young museum cafe area
-  window.irq.SiS.activeZones = {};
-  var activeZones = window.irq.SiS.activeZones;
+  // window.irq.SiS.zoneOrigin = { latitude:37.7709419, longitude: -122.4695236} ; // de young museum cafe area
+  window.irq.SiS.currentPosition = {
+    "latitude": "37.770186961429175",
+    "longitude":"-122.46781960133366"
+  }; // default is somewhere in the cafe area
+
+
+  window.irq.SiS.inhabitedAreas = [];
+  // main function that tracks location in the areas
+  window.irq.SiS.updateInhabitedAreas = function(changeSound, cb) {
+    if(changeSound) {
+      window.irq.SiS.inhabitedAreas = []; // clear out old ones
+        var rndm = Math.floor(Math.random() * irq.SiS.relativeZones.length-1);
+        var zone = irq.SiS.relativeZones[rndm];
+        window.irq.SiS.inhabitedAreas[0] = zone;
+      // removed until https on domain
+      // window.irq.SiS.getCurrentPosition(function(position) {
+      //   var nativepos = position;
+      //   // leave the last or default position if there is none
+      //   currentPosition = position || window.irq.SiS.currentPosition;
+      //
+      //   window.irq.SiS.areas.forEach(function(area) {
+      //     var concourse5 = {"latitude":"37.77043598858816", "longitude": "-122.46708772142483"};
+      //     var concourse9 = {"latitude": "37.770186961429175","longitude":"-122.46781960133366"};
+      //     var cafegrass1 = { "latitude":37.7709419, "longitude": -122.4695236};
+      //     currentPosition = {"lat":nativepos.coords.latitude, "lon": nativepos.coords.longitude};
+      //     var inside = geolib.isPointInside(cafegrass1, area.points);
+      //     if(inside) {
+      //       window.irq.SiS.inhabitedAreas[area.name] = true;
+      //       console.log(area.name);
+      //     }
+      //   }); // end areas forEach
+      //   cb();
+      //
+      // }); // end getCurrentPosition cb
+    }
+    cb();
+  }; // end updateInhabitedAreas
+
+  // returns current position
+  window.irq.SiS.getCurrentPosition = function(cb) {
+    navigator.geolocation.getCurrentPosition(cb,cb,{enableHighAccuracy: true});
+  };
 
   window.irq.SiS.setOrigin = function(lat, lon) {
     navigator.geolocation.getCurrentPosition(
