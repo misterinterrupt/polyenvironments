@@ -75,4 +75,26 @@ $(document).ready(function() {
     $(xyPad).hide();
   }
 
+  // set up gps origin  // geolib seems to conventionally key it as lon/lat google locations are lat/lon
+  window.irq.SiS.zoneOrigin = { latitude:37.7709419, longitude: -122.4695236} ; // de young museum cafe area
+  window.irq.SiS.activeZones = {};
+  var activeZones = window.irq.SiS.activeZones;
+
+  window.irq.SiS.setOrigin = function(lat, lon) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+          var geoArr = [position.coords.longitude, position.coords.latitude, position.coords.altitude];
+          console.log('You are ' + geolib.getDistance(geoArr, {
+              latitude: 51.525,
+              longitude: 7.4575
+          }) + ' meters away from 51.525, 7.4575');
+      },
+      function() {
+          console.log('Position could not be determined.');
+      },
+      {
+          enableHighAccuracy: true
+      }
+    );
+  }; // end setOrigin
 }); // end $.ready()

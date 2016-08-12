@@ -14,12 +14,12 @@ window.irq.SiS.relativeZones = [
       channels: 10
     },
     cloudParams: {
-      interval: 1000, // speed factor with which grains are scheduled
-      density: 500, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      interval: 400, // speed factor with which grains are scheduled
+      density: 250, // ms grain spacing, will be placed one after the other + a random amnt of jitter
       amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.04, // random position/spacing amount
+      jitter: 0.14, // random position/spacing amount
       spread: 3.0, // random pan amount
-      grainLength: 1.2, // length in s of each grain
+      grainLength: 1.0, // length in s of each grain
     },
     grainParams: {
       attack: 0.05,

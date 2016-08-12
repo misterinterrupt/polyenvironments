@@ -270,6 +270,8 @@ window.irq.SiS = window.irq.SiS || {};
       sprayTimeout = setTimeout(makeGrain, timeout);
     }
 
+    // TODO: github issue #5: schedule offset generation leaves gaps
+    // TODO: github issue #6: extra scheduling after next two tick periods scheduled
     function grainTimesToSequence(now, startTime, tickLength, timeout, density) {
       console.log("calculating new grains");
       var timeElapsedSinceStart = now - startTime;
@@ -277,8 +279,8 @@ window.irq.SiS = window.irq.SiS || {};
       var lastTick = now - timePastLastTick;
       var twoTicksAfterNow = lastTick + (tickLength * 2);
       var firstTick = latestSequencedEventTime === 0;
-      var previousToPresequenceThreshold = (now < twoTicksAfterNow/2);
-      if(!firstTick && previousToPresequenceThreshold) return []; // current and the next tick of time have been filled
+      var previousToPreSequenceThreshold = (now < twoTicksAfterNow/2);
+      if(!firstTick && previousToPreSequenceThreshold) return []; // current and the next tick of time have been filled
       // we should have one tick of time to fill, unless some unforseen skip..
       var offsetTime = density;
       var timesToSequence = [];

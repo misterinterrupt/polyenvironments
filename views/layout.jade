@@ -1,15 +1,17 @@
 doctype html
 html
   head
+    meta(name='viewport',content='width=device-width')
     block title
       title Polyenvironments
     include ./head.jade
     block styles
-  
+
   body
     block main
     script(src='/js/jquery-1.11.3.min.js')
     script(src='/js/bootstrap.min.js')
     script(src='/js/underscore-min.js')
     script(src='/js/three.min.js')
+    script(src='/js/Geolib-2.0.21/geolib.js')
     block scripts
