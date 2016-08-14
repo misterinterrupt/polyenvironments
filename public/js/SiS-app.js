@@ -85,14 +85,15 @@ window.irq.SiS = window.irq.SiS || {};
   // starts and stops the cloud for zones based on active status
   function zoneActivityMonitor() {
     var now = masterContext.currentTime;
-    var newSoundLength = (3*60) + (Math.floor(Math.random() * (5*60)));
+    var newSoundLength = 20 + (Math.floor(Math.random() * (2*60))); // random amt 20s - 140s
     var firstTime = false;
+    // console.log(firstTime, lastSoundChangeTime);
     if(lastSoundChangeTime === null) {
       lastSoundChangeTime = now;
       firstTime = true;
     }
     if(lastSoundChangeLength === null) {
-      lastSoundChangeLength = newSoundLength;
+      lastSoundChangeLength = 20;
     }
     var nextTimeToChange = lastSoundChangeTime + lastSoundChangeLength;
     var changeSound = firstTime || (now > nextTimeToChange);
@@ -302,7 +303,7 @@ window.irq.SiS = window.irq.SiS || {};
     // TODO: github issue #5: schedule offset generation leaves gaps
     // TODO: github issue #6: extra scheduling after next two tick periods scheduled
     function grainTimesToSequence(now, startTime, tickLength, timeout, density) {
-      console.log("calculating new grains");
+      // console.log("calculating new grains");
       var timeElapsedSinceStart = now - startTime;
       var timePastLastTick = timeElapsedSinceStart % tickLength; // amount of time past last absolute tick
       var lastTick = now - timePastLastTick;

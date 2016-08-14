@@ -2,53 +2,11 @@ window.irq = window.irq || {};
 window.irq.SiS = window.irq.SiS || {};
 window.irq.SiS.relativeZones = [
   {
-    name: 'a',
-    area: 'concourse 9',
-    source: {
-      id:"TICKLES",
-      file:"TICKLES.mp3",
-      channels: 5
-    },
-    cloudParams: {
-      interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
-      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
-      spread: 3.0, // random pan amount
-      grainLength: 1.0, // length in s of each grain
-    },
-    grainParams: {
-      attack: 0.05,
-      release: 0.05
-    }
-  },
-  {
     name: 'b',
     area: 'concourse 5',
     source: {
       id:"FLAPPY",
       file:"flappy.mp3",
-      channels: 5
-    },
-    cloudParams: {
-      interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
-      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
-      spread: 3.0, // random pan amount
-      grainLength: 1.0, // length in s of each grain
-    },
-    grainParams: {
-      attack: 0.05,
-      release: 0.05
-    }
-  },
-  {
-    name: 'c',
-    area: 'cafe grass 2',
-    source: {
-      id:"PIGS6",
-      file:"PIGS6.mp3",
       channels: 5
     },
     cloudParams: {
@@ -75,27 +33,6 @@ window.irq.SiS.relativeZones = [
     cloudParams: {
       interval: 200, // speed factor with which grains are scheduled
       density: 300, // ms grain spacing, will be placed one after the other + a random amnt of jitter
-      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
-      spread: 3.0, // random pan amount
-      grainLength: 1.0, // length in s of each grain
-    },
-    grainParams: {
-      attack: 0.05,
-      release: 0.05
-    }
-  },
-  {
-    name: 'e',
-    area: 'concourse 9',
-    source: {
-      id:"R09_0001",
-      file:"R09_0001.mp3",
-      channels: 5
-    },
-    cloudParams: {
-      interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
       amp: 0.40, // max amplitude of grains, adjust for amount of doubling
       jitter: 0.14, // random position/spacing amount
       spread: 3.0, // random pan amount
@@ -200,9 +137,9 @@ window.irq.SiS.relativeZones = [
     },
     cloudParams: {
       interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      density: 80, // ms grain spacing, will be placed one after the other + a random amnt of jitter
       amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
+      jitter: 0.34, // random position/spacing amount
       spread: 3.0, // random pan amount
       grainLength: 1.0, // length in s of each grain
     },
@@ -236,57 +173,15 @@ window.irq.SiS.relativeZones = [
     name: 'e',
     area: 'concourse 9',
     source: {
-      id:"R09_0008",
-      file:"R09_0008.mp3",
-      channels: 5
-    },
-    cloudParams: {
-      interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
-      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
-      spread: 3.0, // random pan amount
-      grainLength: 1.0, // length in s of each grain
-    },
-    grainParams: {
-      attack: 0.05,
-      release: 0.05
-    }
-  },
-  {
-    name: 'e',
-    area: 'concourse 9',
-    source: {
-      id:"R09_0009",
-      file:"R09_0009.mp3",
-      channels: 5
-    },
-    cloudParams: {
-      interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
-      amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
-      spread: 3.0, // random pan amount
-      grainLength: 1.0, // length in s of each grain
-    },
-    grainParams: {
-      attack: 0.05,
-      release: 0.05
-    }
-  },
-  {
-    name: 'e',
-    area: 'concourse 9',
-    source: {
       id:"R09_0010",
       file:"R09_0010.mp3",
       channels: 5
     },
     cloudParams: {
       interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      density: 90, // ms grain spacing, will be placed one after the other + a random amnt of jitter
       amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
+      jitter: 0.24, // random position/spacing amount
       spread: 3.0, // random pan amount
       grainLength: 1.0, // length in s of each grain
     },
@@ -431,11 +326,11 @@ window.irq.SiS.relativeZones = [
     },
     cloudParams: {
       interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      density: 50, // ms grain spacing, will be placed one after the other + a random amnt of jitter
       amp: 0.40, // max amplitude of grains, adjust for amount of doubling
       jitter: 0.14, // random position/spacing amount
       spread: 3.0, // random pan amount
-      grainLength: 1.0, // length in s of each grain
+      grainLength: 0.7, // length in s of each grain
     },
     grainParams: {
       attack: 0.05,
@@ -494,11 +389,11 @@ window.irq.SiS.relativeZones = [
     },
     cloudParams: {
       interval: 240, // speed factor with which grains are scheduled
-      density: 100, // ms grain spacing, will be placed one after the other + a random amnt of jitter
+      density: 60, // ms grain spacing, will be placed one after the other + a random amnt of jitter
       amp: 0.40, // max amplitude of grains, adjust for amount of doubling
-      jitter: 0.14, // random position/spacing amount
+      jitter: 0.09, // random position/spacing amount
       spread: 3.0, // random pan amount
-      grainLength: 1.0, // length in s of each grain
+      grainLength: 0.9, // length in s of each grain
     },
     grainParams: {
       attack: 0.05,

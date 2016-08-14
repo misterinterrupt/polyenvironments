@@ -1,14 +1,14 @@
 window.irq = window.irq || {};
 window.irq.SiS = window.irq.SiS || {};
+window.irq.SiS.xyPad1 = {
+  enabled: false
+};
 
 $(document).ready(function() {
 
   // kick off the cloud process
   function initApp(p) {
     // shoving specifics about the sketch into global
-    window.irq.SiS.xyPad1 = {
-      enabled: false
-    };
     // define the processing context
     p.setup = function() {
       if(window.irq.SiS.xyPad1.enabled) {
@@ -76,10 +76,10 @@ $(document).ready(function() {
   // set up processing first
   // it is essentially the app UI
   var xyPad = document.getElementById('control-pad-1');
-  var processing = new Processing(xyPad, initApp);
   if(!window.irq.SiS.xyPad1.enabled) {
     $(xyPad).hide();
   }
+  var processing = new Processing(xyPad, initApp);
 
   // set up gps origin  // geolib seems to conventionally key it as lon/lat google locations are lat/lon
   // window.irq.SiS.zoneOrigin = { latitude:37.7709419, longitude: -122.4695236} ; // de young museum cafe area
